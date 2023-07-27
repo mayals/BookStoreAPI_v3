@@ -11,7 +11,23 @@ from .serializers import UserRegistrationSerializer, UserModelSerializer,Confirm
 # https://github.com/GeeWee/django-auto-prefetching
 import django_auto_prefetching
 
+"""""
+AutoPrefetchViewSetMixin is a mixin for Django REST Framework viewsets that automatically prefetches the needed objects from the database, based on the viewset's queryset and serializer_class. This can help to improve performance by reducing the number of database queries that need to be made.
+To use AutoPrefetchViewSetMixin, you need to import it and then add it as the base class for your viewset.
+For example:
 
+from django_auto_prefetching import AutoPrefetchViewSetMixin
+
+class MyViewSet(AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
+    queryset = MyModel.objects.all()
+    serializer_class = MySerializer
+
+AutoPrefetchViewSetMixin will automatically prefetch all of the related objects that are needed by the serializer.
+For example, if the serializer includes a field for MyModel.user, AutoPrefetchViewSetMixin will prefetch the User object that is related to the MyModel object.
+You can also override the following methods on your viewset to explicitly specify which fields should be prefetches:
+get_prefetch_fields()
+get_exclude_fields()
+"""
 
 
 
@@ -23,8 +39,9 @@ class UserViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin, viewsets.Mod
 
     # Define a get_queryset method that returns only active users for non-superusers
     def get_queryset(self):
-        if self.request.user.is_superuser:
-            return super().get_queryset()
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            return super().get_queryset() 
+        # return super().get_queryset().filter(user=self.request.user)
         raise PermissionDenied("You do not have permission to access the list of users.")
 
     # Define a get_serializer_class method that uses a different serializer for user creation
