@@ -65,6 +65,9 @@ INSTALLED_APPS = [
     # https://www.django-rest-framework.org/
     'rest_framework',
 
+    # https://pypi.org/project/django-celery-results/
+    'django_celery_results',
+
     # https://pypi.org/project/django-rest-passwordreset/
     'django_rest_passwordreset',
     
@@ -201,8 +204,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 # https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html#using-celery-with-django 
 ############################################# Redis & Celery settings ##############################################
 CELERY_BROKER_URL     = "redis://127.0.0.1:6379"
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379"
-
+# https://pypi.org/project/django-celery-results/
+CELERY_RESULT_BACKEND = "django-db"
+# CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379"
 
 
 
@@ -281,7 +285,7 @@ SWAGGER_SETTINGS = {
 
 
 
-######################################### SWAGGER_SETTINGS ##############################################
+######################################### STRIPE_SECRET SETTINGS ##############################################
 STRIPE_SECRET = os.getenv('STRIPE_SECRET')
 
 

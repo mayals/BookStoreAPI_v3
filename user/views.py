@@ -43,6 +43,7 @@ class UserViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin, viewsets.Mod
 
 
 
+
 class ConfirmEmailView(APIView):
     queryset = get_user_model().objects.all()
     serializer_class = ConfirmEmailSerializer

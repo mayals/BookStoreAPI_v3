@@ -59,3 +59,6 @@ Book Application:
 The Book Application handles all the functionalities related to books in the BookStoreAPI. This includes defining the models for books, creating views to handle book retrieval and manipulation, implementing forms for book-related data input, and managing book-related templates. The Book Application might also include features like book search, filtering, and sorting.
 
 Of course, this is just a basic setup, and depending on the complexity of this BookStoreAPI project and the specific features we want to implement, we might need additional applications to handle different aspects. For example, we could have a separate application for handling shopping cart and checkout functionality when our API includes e-commerce features.
+
+NOTE: you need this command to run celery in another terminal 
+celery -A project worker --pool=solo  -l INFO

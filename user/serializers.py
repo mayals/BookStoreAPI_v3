@@ -5,30 +5,22 @@ from.models import UserModel, UserProfile, SMSCode
 
 
 
-class UserModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserModel
-        fields = ['id', 'email', 'first_name', 'last_name', 'is_verifiedEmail', 'enable_two_factor_authentication', 'created_at']
-
-
-
-
-
 # ---[POST]---------- this serializer used only for registeration  [POST]---------------------------#
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, style={'input_type':'password'})
-
     # Meta class to specify the model and its fields to be serialized
     class Meta:
         model = UserModel
-        fields = ['id', 'email', 'first_name', 'last_name', 'password'] 
-
+        fields = ['id','email','first_name','last_name','password'] 
+        extra_kwargs = {'email': {'required': True},
+                        'first_name': {'required': True},
+                        'last_name': {'required': True},
+        }
     # Method to validate the email entered by the user
     def validate_email(self, value):
         if UserModel.objects.filter(email=value).exists():
             raise serializers.ValidationError("A user with this email address already exists.")
-        return value
-    
+        return value 
     # Method to validate the password entered by the user
     def validate_password(self, value):
         try:
@@ -50,8 +42,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
 
 
-
 class ConfirmEmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserModel
+        fields = ['id', 'email', 'first_name', 'last_name', 'is_verifiedEmail', 'enable_two_factor_authentication', 'created_at']
+
+
+
+
+
+class UserModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = ['id', 'email', 'first_name', 'last_name', 'is_verifiedEmail', 'enable_two_factor_authentication', 'created_at']
