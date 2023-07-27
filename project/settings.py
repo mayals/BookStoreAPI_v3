@@ -10,7 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+
+from datetime import timedelta
+import os
 from pathlib import Path
+# https://pypi.org/project/python-dotenv/
+from dotenv import load_dotenv
+load_dotenv()
+
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,28 +29,65 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-uyv^#xfr$@!!3$zoued-#-cw3cdb0v8dbbhhs@0*$ly$)#)=52'
+SECRET_KEY = os.getenv('SECRET_KEY'),
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ 'project.onrender.com',
+                  '127.0.0.1',
+                  'localhost'
+]
 
 
 # Application definition
-
 INSTALLED_APPS = [
+    # Build-in apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # My local apps
+    'user.apps.UserConfig',
+    'book.apps.BookConfig',
+    'ecommerce.apps.EcommerceConfig',
+    
+
+    # Third party apps
+    # -----------------
+    
+    # https://django-phonenumber-field.readthedocs.io/en/latest/#
+    "phonenumber_field",
+    
+    # https://www.django-rest-framework.org/
+    'rest_framework',
+
+    # https://pypi.org/project/django-rest-passwordreset/
+    'django_rest_passwordreset',
+    
+    # https://pypi.org/project/django-cors-headers/
+    'corsheaders',
+    
+    # https://django-filter.readthedocs.io/en/stable/guide/usage.html#
+    'django_filters',
+
+    # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html
+    'rest_framework_simplejwt',  # djangorestframework-simplejwt
+
+    # https://drf-yasg.readthedocs.io/en/stable/  # Swagger    
+    'drf_yasg',    # Swagger 
 ]
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",    #'corsheaders',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -69,16 +115,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # Password validation
@@ -112,12 +148,191 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+
+
+############################################# custom user model settings ##############################################
+# AUTH_USER_MODEL = "myapp.MyUser"
+# https://docs.djangoproject.com/en/4.0/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project
+AUTH_USER_MODEL = 'user.UserModel'
+
+
+
+############################################# rest_framework settings ##############################################
+REST_FRAMEWORK = { 
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ), 
+}
+
+
+
+############################################# django-cors-headers settings ##############################################
+# https://pypi.org/project/django-cors-headers/
+#PRODUCTION
+#CORS_ALLOWED_ORIGINS = [
+    #"https://example.com",
+    #"http://localhost:3000",
+    # Add more allowed origins as needed
+#]
+# Development
+CORS_ORIGIN_ALLOW_ALL = True
+
+
+
+# https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html#using-celery-with-django 
+############################################# Redis & Celery settings ##############################################
+CELERY_BROKER_URL     = "redis://127.0.0.1:6379"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379"
+
+
+
+
+############################################# EMAIL settings ##############################################
+EMAIL_BACKEND      = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@BookStoreAPI'
+
+
+
+
+######################################################### django-rest-passwordreset settings ##############################################
+# Time in hours about how long the token is active
+DJANGO_REST_MULTITOKENAUTH_RESET_TOKEN_EXPIRY_TIME = 6
+
+# Return 200 even if the user doesn't exist in the database
+DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
+
+# Allow password reset for a user that does not have a usable password
+DJANGO_REST_MULTITOKENAUTH_REQUIRE_USABLE_PASSWORD = True
+
+
+
+####################################### LOGGING module in Django settings ##############################################
+""" 
+this logging configuration sets up a single handler 'console',
+which sends log messages with a severity level of 'INFO' or higher to the console.
+It then configures the 'django' logger to use this handler,
+ensuring that Django log messages of sufficient severity are printed to the console during application runtime.
+With this configuration in place,
+Django will use the specified settings to handle log messages during the execution of your application.
+In this case, log messages with a severity level of 'INFO' or higher from Django will be printed to the console.
+"""
+# The logging module is a built-in Python module, so you don't need to install it separately.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO'
+        },
+    },
+}
+
+
+
+
+######################################### SIMPLE_JWT settings ##############################################
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'UPDATE_LAST_LOGIN': True,
+    'SIGNING_KEY': os.getenv('SIGNING_KEY')
+}
+
+
+
+
+######################################### SWAGGER_SETTINGS ##############################################
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "name": "Authorization",
+            "type": "apiKey",
+            "in": "header",
+        }
+    },
+    "USE_SESSION_AUTH": False,
+}
+
+
+
+######################################### SWAGGER_SETTINGS ##############################################
+STRIPE_SECRET = os.getenv('STRIPE_SECRET')
+
+
+
+
+######################################### Twilio Account SID and Auth Token settings ##############################################
+# Twilio Account SID and Auth Token
+
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
+
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
+
+# Twilio phone number used for sending SMS messages
+TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
+
+
+
+
+############################################# Database settings ##############################################
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+#DATABASES = {
+    # Development
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+
+    #     'NAME': os.getenv('DB_NAME'),
+
+    #     'USER': os.getenv('DB_USER'),
+
+    #     'PASSWORD': os.getenv('DB_PASSWORD'),
+
+    #     'HOST': os.getenv('DB_HOST'),
+
+    #     'PORT': os.getenv('DB_PORT'),
+    # }
+   
+    #PRODUCTION
+    # 'default': dj_database_url.config(
+    #     default=os.getenv('DATABASE_URL'), 
+    #     conn_max_age=600    
+    #     )
+#}
+
+
+
+
+
+
