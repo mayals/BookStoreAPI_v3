@@ -58,6 +58,16 @@ class UserViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin, viewsets.Mod
             return {permissions.AllowAny()}
         return super().get_permissions()
 
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+
 
 
 

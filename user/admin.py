@@ -11,9 +11,9 @@ class UserModelAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display  = ['bio', 'profile_image', 'date_of_birth','gender', 'phone_number','address','created_at']
-    list_filter   = ['bio', 'profile_image', 'date_of_birth','gender', 'phone_number','address','created_at']
-    search_fields = ['bio', 'profile_image', 'date_of_birth','gender', 'phone_number','address','created_at']
+    list_display  = ['user','bio', 'profile_image', 'date_of_birth','gender', 'phone_number','address','created_at']
+    list_filter   = ['user','bio', 'profile_image', 'date_of_birth','gender', 'phone_number','address','created_at']
+    search_fields = ['user','bio', 'profile_image', 'date_of_birth','gender', 'phone_number','address','created_at']
 
 
 

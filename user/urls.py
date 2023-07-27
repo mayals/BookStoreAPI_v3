@@ -6,7 +6,7 @@ from user import views
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register('users', views.UserViewSet,basename="users")               # UserModel   {'get': 'list'}-{'get': 'retrieve'}-{'delete': 'destroy'}
-router.register('profiles', views.UserViewSet,basename="profiles")         # UserProfile
+router.register('profiles', views.UserProfileViewSet,basename="profiles")         # UserProfile
 router.register('sms-codes', views.SMSCodeViewSet,basename="sms-codes")    # SMSCode
 
 
