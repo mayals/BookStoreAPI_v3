@@ -7,9 +7,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from.models import UserProfile, SMSCode
-from .serializers import UserRegistrationSerializer, UserModelSerializer,ConfirmEmailSerializer, UserProfileSerializer, SMSCodeSerializer 
+from .serializers import UserRegistrationSerializer, UserModelSerializer,ConfirmEmailSerializer, UserProfileSerializer, SMSCodeSerializer ,CustomTokenObtainPairSerializer
+from common import permissions as custom_permissions
 # https://github.com/GeeWee/django-auto-prefetching
 import django_auto_prefetching
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 """""
 AutoPrefetchViewSetMixin is a mixin for Django REST Framework viewsets that automatically prefetches the needed objects from the database, based on the viewset's queryset and serializer_class. This can help to improve performance by reducing the number of database queries that need to be made.
@@ -31,6 +35,10 @@ get_exclude_fields()
 
 
 
+
+###################################################### UserModel #################################################################################
+
+#Register
 class UserViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UserModelSerializer
@@ -39,7 +47,7 @@ class UserViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin, viewsets.Mod
 
     # Define a get_queryset method that returns only active users for non-superusers
     def get_queryset(self):
-        if self.request.user.is_staff or self.request.user.is_superuser:
+        if self.request.user.is_superuser:
             return super().get_queryset() 
         # return super().get_queryset().filter(user=self.request.user)
         raise PermissionDenied("You do not have permission to access the list of users.")
@@ -58,19 +66,18 @@ class UserViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin, viewsets.Mod
             return {permissions.AllowAny()}
         return super().get_permissions()
 
-    
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def perform_destroy(self, instance):
-        instance.delete()
-
-
+#1 register new user in database  ----- register ----  class userviewset[POST]  in views.py
+#2 signal work and make hard alink that contain the code and pk and give it to celary as a task ------------------------------ signals.py
+#3 task work and send email to the user  -------------------------------task.by
+#4 uset receve email and clik the link that reach him to run class ConfirmEmailView(APIView) ----views.py
+#5 when class ConfirmEmailView(APIView) run is recollect the pk and token and chech is belong the same user
+#  and make the user is acive = true and is_varified email = true
+#6 now user has verivied email and active so can doing login by jwt to optain access token 
 
 
-
+# check before login - work after the email reach to user and he clik the link inside it 
+###################### ConfirmEmailView #################
 class ConfirmEmailView(APIView):
     queryset = get_user_model().objects.all()
     serializer_class = ConfirmEmailSerializer
@@ -92,14 +99,42 @@ class ConfirmEmailView(APIView):
             return Response({"error": "Invalid token"}, status=400)
     
 
-#######################################################################################################################################
-class UserProfileViewSet(viewsets.ModelViewSet):
+# LOGIN 
+###################### JWT CUSTOM VIEW ################# login/get-token/
+class CustomTokenObtainPairViewSet(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+
+
+
+
+
+
+###################################################### UserProfile #################################################################################
+class UserProfileViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin,viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
     queryset = UserProfile.objects.all()
 
-
-
+    def get_queryset(self):
+        if self.request.user.is_staff or self.request.user.is_superuser :
+           return super().get_queryset()
+        return super().get_queryset().filter(user=self.request.user)
+     
+    def get_permissions(self):
+        if self.action in ['retrieve']:
+            return [permissions.IsAuthenticated()]
+        if self.action in ["update", "partial_update"]:
+            return [permissions.IsAuthenticated(), custom_permissions.IsOwnerOrReadOnly(),]
+        if self.action in ['destroy']:
+            return [permissions.IsAuthenticated(), permissions.IsAdminUser(),]
+        return super().get_permissions()
+         
     
+
+
+
+  ###################################################### SMSCode #################################################################################
 class SMSCodeViewSet(viewsets.ModelViewSet):
     serializer_class = SMSCodeSerializer 
     queryset = SMSCode.objects.all()

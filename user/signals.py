@@ -27,10 +27,10 @@ def send_confirmation_email(sender, instance, created, **kwargs):
         try:
             subject = 'Confirm Your Email Address'
             message = render_to_string('user/email_confirmation.html', {
-            'user': instance,
-            'domain': 'localhost:8000',
-            'uid': urlsafe_base64_encode(smart_bytes(instance.pk)),
-            'token': default_token_generator.make_token(instance),
+                                                    'user': instance,
+                                                    'domain': 'localhost:8000',
+                                                    'uid': urlsafe_base64_encode(smart_bytes(instance.pk)),
+                                                    'token': default_token_generator.make_token(instance),
         }) 
             from_email = DEFAULT_FROM_EMAIL    # load_dotenv() - this work her to bring this variable value from file .env
             to_email = instance.email

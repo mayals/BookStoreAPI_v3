@@ -2,7 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from.models import UserModel, UserProfile, SMSCode
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 # ---[POST]---------- this serializer used only for registeration  [POST]---------------------------#
@@ -46,6 +46,33 @@ class ConfirmEmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = ['id', 'email', 'first_name', 'last_name', 'is_verifiedEmail', 'enable_two_factor_authentication', 'created_at']
+
+
+
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer): 
+    """Override default token login to include user data"""
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = self.user
+        if not user.is_verifiedEmail:
+            raise serializers.ValidationError({"error":"Email is not verified."})
+        data.update(
+            {
+                "id": self.user.id,
+                "email": self.user.email,
+                "first_name": self.user.first_name,
+                "last_name": self.user.last_name,
+                "is_superuser": self.user.is_superuser,
+                "is_staff": self.user.is_staff,
+                "is_verifiedEmail": self.user.is_verifiedEmail
+            }
+        )
+        return data
+    
+
 
 
 
