@@ -11,7 +11,6 @@ router.register('profiles', views.UserProfileViewSet,basename="profiles")       
 
 # The API URLs are now determined automatically by the router.
 urlpatterns =  router.urls  + [
-    
     # UserModel  model
     path('register/', views.UserViewSet.as_view({'post': 'create'}), name='register'),    # UserModel {'post': 'create'}
     #User EmailConfirm
@@ -23,15 +22,6 @@ urlpatterns =  router.urls  + [
     path('smscode/', views.SMSCodeConfirmAPIView.as_view(), name='sms_code'),
     #User password
     path("reset-password/", include("django_rest_passwordreset.urls", namespace="password_reset")),
-    
-    
-    # UserProfile model 
-
-
-
-
-    # SMSCode model
-    # path('smscode/', views.SMSCodeViewSet.as_view(), name='sms_code'),
 ]
 
 

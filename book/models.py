@@ -11,7 +11,7 @@ from shortuuid.django_fields import ShortUUIDField
 
 class Category(models.Model):
     id          = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    name        = models.CharField(max_length=100, unique=True, blank=False, null=True) 
+    name        = models.CharField(max_length=100, unique=True, null=True) 
     slug        = models.SlugField(max_length=120, blank=True, null=True)
     icon        = models.ImageField(upload_to = "book/category/%Y/%m/%d/", blank=False, null=True)
     created_at  = models.DateTimeField(auto_now_add=True,auto_now=False)
@@ -20,9 +20,8 @@ class Category(models.Model):
         return self.slug
 
     def save(self, *args, **kwargs): 
-        if  self.slug == None:
             self.slug = slugify(self.name)
-        super().save(*args, **kwargs)  # Call the "real" save() method.       
+            super().save(*args, **kwargs)  # Call the "real" save() method.       
     
     def get_absolute_url(self):
         return reverse('category-detail', kwargs = {'slug':self.slug})      # view_name='{model_name}-detail'    

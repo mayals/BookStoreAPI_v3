@@ -1,12 +1,30 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from.models import Category, Publisher, Author, Tag, Review, Book
-
+from .models import Category, Publisher, Author, Tag, Review, Book
+from rest_framework.validators import UniqueValidator
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=100,validators=[UniqueValidator(queryset=Category.objects.all())]    
+)
+    def validate_name(self, value):
+        if value is None:
+            raise serializers.ValidationError('This field is required') 
+        if Category.objects.filter(name=value).exists():
+            raise serializers.ValidationError("category name's must be unique")     
+        print(value)
+        return  value
+      
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'icon', 'created_at']
+        fields = ['id', 'name', 'slug', 'icon', 'created_at','category_books']
+        extra_kwargs = {
+                    'name' : {'required' : True },
+                    'id'   : {'read_only': True },
+                    'slug' : {'read_only': True },
+                    'category_books':{'read_only': True },
+        }
+
 
 
 
