@@ -70,6 +70,9 @@ class UserModel(AbstractUser, PermissionsMixin):
 
 
 
+
+
+
 class UserProfile(models.Model):
     id    = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='userprofile')
@@ -107,6 +110,7 @@ class UserProfile(models.Model):
 
 
 
+
 class SMSCode(models.Model):
     id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='smscode')
@@ -116,11 +120,12 @@ class SMSCode(models.Model):
     # modify OTP_code_number for each registered user to chech with it later
     def save(self, *args, **kwargs):
         verification_code = random.randint(100000, 999999)
-        self.OTP_code = str(verification_code)
+        self.OTP_code = verification_code
+        self.user= self.request.user
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f'{self.user.get_user_fullname}-{self.OTP_code}'
+        return f'{self.user.first_name}-{self.OTP_code}'
 
     def is_expired(self, expiration_minutes=10):
         expiration_time = self.created_at + timezone.timedelta(minutes=expiration_minutes)

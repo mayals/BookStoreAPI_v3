@@ -1,5 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers
 from.models import UserModel, UserProfile, SMSCode
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -42,7 +43,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
 
 
-class ConfirmEmailSerializer(serializers.ModelSerializer):
+class EmailConfirmSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = ['id', 'email', 'first_name', 'last_name', 'is_verifiedEmail', 'enable_two_factor_authentication', 'created_at']
@@ -50,7 +51,7 @@ class ConfirmEmailSerializer(serializers.ModelSerializer):
 
 
 
-
+# JWT  -- customize serializer
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer): 
     """Override default token login to include user data"""
 
@@ -95,8 +96,60 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 
-
-class SMSCodeSerializer(serializers.ModelSerializer):
+# [POST] - user insert OTP code  in this form
+class SMSCodeConfirmSerializer(serializers.ModelSerializer):
+    OTP_code = serializers.CharField(max_length=6, required=True,)                                                                        
+    
+    
+    def validate_OTP_code(self, value):
+        # value = str(value)
+        if not value.isdigit():
+            raise serializers.ValidationError("Number must be a string of digits.")
+        
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+            # Retrieve the SMSCode instance for the authenticated user
+            sms_code = SMSCode.objects.filter(user=user).first()
+        
+            if not sms_code:
+                raise serializers.ValidationError("No SMS verification code found for this user.")
+            # Compare the user-provided number with the number in the SMSCode instance
+            if value != sms_code.OTP_code:
+                raise serializers.ValidationError("Incorrect SMS verification code.")
+            return value
+        
     class Meta:
         model = SMSCode
-        fields = ['id', 'user', 'OTP_code', 'created_at']
+        fields = ['OTP_code']
+
+
+
+
+        ####
+
+
+class ConfirmSmsSerializer(serializers.ModelSerializer):
+    number = serializers.CharField(max_length=6, required=True,
+                                    validators=[MinValueValidator(100000),
+                                                MaxValueValidator(999999)])
+    def validate_number(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("Number must be a string of digits.")
+  
+        # Retrieve the SMSCode instance for the authenticated user
+        sms_code = SMSCode.objects.filter(user=self.context['request'].user).first()
+        if not sms_code:
+            raise serializers.ValidationError("No SMS verification code found for this user.")
+        
+        # Compare the user-provided number with the number in the SMSCode instance
+        if value != sms_code.number:
+            raise serializers.ValidationError("Incorrect SMS verification code.")
+        
+        return value
+        
+    class Meta:
+        model = SMSCode
+        fields = ['number']
+        

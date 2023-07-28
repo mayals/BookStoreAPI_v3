@@ -87,7 +87,7 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
 
     email_html_message = render_to_string('api/v1/users/reset_password.html', context)
 
-    subject = "Password Reset for Smart Learning Account"
+    subject = "Password Reset for BookStoreAPI Account"
     from_email = DEFAULT_FROM_EMAIL
     to_email = reset_password_token.user.email
     

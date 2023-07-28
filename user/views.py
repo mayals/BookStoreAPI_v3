@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from.models import UserProfile, SMSCode
-from .serializers import UserRegistrationSerializer, UserModelSerializer,ConfirmEmailSerializer, UserProfileSerializer, SMSCodeSerializer ,CustomTokenObtainPairSerializer
+from .serializers import UserRegistrationSerializer, UserModelSerializer,EmailConfirmSerializer, UserProfileSerializer, SMSCodeConfirmSerializer ,CustomTokenObtainPairSerializer
 from common import permissions as custom_permissions
 # https://github.com/GeeWee/django-auto-prefetching
 import django_auto_prefetching
@@ -37,7 +37,6 @@ get_exclude_fields()
 
 
 ###################################################### UserModel #################################################################################
-
 #Register
 class UserViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin, viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
@@ -77,10 +76,10 @@ class UserViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin, viewsets.Mod
 
 
 # check before login - work after the email reach to user and he clik the link inside it 
-###################### ConfirmEmailView #################
-class ConfirmEmailView(APIView):
+###################### EmailConfirmAPIView #################
+class EmailConfirmAPIView(APIView):
     queryset = get_user_model().objects.all()
-    serializer_class = ConfirmEmailSerializer
+    serializer_class = EmailConfirmSerializer
     permission_classes = []
 
     def get(self, request, uidb64, token):
@@ -135,8 +134,23 @@ class UserProfileViewSet(django_auto_prefetching.AutoPrefetchViewSetMixin,viewse
 
 
   ###################################################### SMSCode #################################################################################
-class SMSCodeViewSet(viewsets.ModelViewSet):
-    serializer_class = SMSCodeSerializer 
-    queryset = SMSCode.objects.all()
+class SMSCodeConfirmAPIView(APIView):
 
+    def get(self, request):
+        sms_codes = SMSCode.objects.all()
+        serializer = SMSCodeConfirmSerializer(sms_codes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def post(self, request):
+        serializer = SMSCodeConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            OTP_code = serializer.validated_data['OTP_code']
+            try:
+                sms_code = SMSCode.objects.get(OTP_code=OTP_code)
+            except SMSCode.DoesNotExist:
+                return Response({"error": "SMS code not found"}, status=status.HTTP_404_NOT_FOUND)
+            if sms_code.is_expired():
+                return Response({"error": "SMS code has expired"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": "SMS code confirmed"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
