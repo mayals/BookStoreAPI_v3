@@ -40,6 +40,7 @@ class Publisher(models.Model):
     slug           = models.SlugField(max_length=120, blank=True, null=True)
     address        = models.CharField(max_length=50, null=True)
     website        = models.URLField(max_length = 255, null=True)
+    social_twitter = models.URLField(max_length = 255, null=True,)
     created_at     = models.DateTimeField(auto_now_add=True,auto_now=False, null=True)
     updated_at     = models.DateTimeField(auto_now_add=False,auto_now=True, null=True)
     # city           = models.CharField(max_length=60, null=True)
@@ -49,10 +50,9 @@ class Publisher(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        if  self.slug == None:
+    def save(self, *args, **kwargs): 
             self.slug = slugify(self.name)
-        super().save(*args, **kwargs)                                   # Call the "real" save() method.   
+            super().save(*args, **kwargs)  #                                 # Call the "real" save() method.   
 
     def get_absolute_url(self):
         return reverse('publisher_detail', kwargs = {'slug':self.slug})   # view_name='{model_name}-detail'
@@ -86,8 +86,7 @@ class Author(models.Model):
         return self.get_fullname()
 
     def save(self, *args, **kwargs):
-        if  self.slug == None:
-            self.slug = slugify(str(self.first_name) +' '+ str(self.last_name))
+        self.slug = slugify(str(self.first_name) +' '+ str(self.last_name))
         super().save(*args, **kwargs)      # Call the "real" save() method. 
     
     #vue view_name='{model_name}-detail'
@@ -111,8 +110,7 @@ class Tag(models.Model):
     slug = models.SlugField(max_length=120, blank=True, null=True)
      
     def save(self, *args, **kwargs):
-        if  self.slug == None:
-            self.slug = slugify(str(self.name))
+        self.slug = slugify(str(self.name))
         super().save(*args, **kwargs)           # Call the "real" save() method. 
     
     def __str__(self):

@@ -112,15 +112,15 @@ class UserProfile(models.Model):
 
 
 class SMSCode(models.Model):
-    id = ShortUUIDField(primary_key=True, length=6, max_length=6, editable=False)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='smscode')
-    OTP_code = models.CharField(max_length=6, blank=False, null=False)
+    id         = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)                     
+    user       = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='smscode')
+    OTP_code   = models.CharField(max_length=6, blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     # modify OTP_code_number for each registered user to chech with it later
     def save(self, *args, **kwargs):
         verification_code = random.randint(100000, 999999)
-        self.OTP_code = verification_code
+        self.OTP_code = str(verification_code)
         self.user= self.request.user
         super().save(*args, **kwargs)
     

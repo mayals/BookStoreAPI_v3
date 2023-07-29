@@ -8,8 +8,8 @@ class CategoryViewSet(viewsets.mixins.CreateModelMixin, mixins.ListModelMixin,
                       mixins.RetrieveModelMixin,mixins.DestroyModelMixin, viewsets.GenericViewSet):                      
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    lookup_field = 'slug' 
     permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug' 
 
     def get_permissions(self):
         if self.action in["create","destroy"]:
@@ -17,19 +17,30 @@ class CategoryViewSet(viewsets.mixins.CreateModelMixin, mixins.ListModelMixin,
         else:
             self.permission_classes = [permissions.AllowAny]       
         return super().get_permissions()
-    
 
 
 
 class PublisherViewSet(viewsets.ModelViewSet):
     queryset = Publisher.objects.all()
     serializer_class = PublisherSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug' 
+
+    def get_permissions(self):
+        if self.action in["create","destroy"]:
+            self.permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]   
+        else:
+            self.permission_classes = [permissions.AllowAny]       
+        return super().get_permissions()
+
+
 
 
 class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-       
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug'    
 
 
 
