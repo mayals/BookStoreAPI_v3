@@ -118,11 +118,11 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class ReviewInfoSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
-
+    user  = serializers.StringRelatedField()  #  many reviewsunfo (ForignKey) -  to   - one user (primary key)
+    book  = serializers.StringRelatedField()  #  many reviewsinfo (ForignKey) -  to   - one book (primary key)  
     class Meta:
         model = ReviewInfo
-        fields = ['id', 'user', 'integer_rating', 'text_rating', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'book', 'integer_rating', 'text_rating', 'created_at', 'updated_at']
         
 
 
@@ -130,9 +130,15 @@ class ReviewInfoSerializer(serializers.ModelSerializer):
 
 
 class BookSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField() #   many books(ForignKey)  -  to   - one category(primary key)
+    publishers = PublisherSerializer(many=True)  # Nested serialization
+    authors = AuthorSerializer(many=True)  # Nested serialization
+    tags = serializers.StringRelatedField(many=True, read_only=True)  # Nested serialization
+    
+
     class Meta:
         model = Book
-        fields = ['id', 'ISBN', 'title', 'slug', 'category', 'publishers', 'authors', 'tags','reviews','average_rating',
+        fields = ['id', 'ISBN', 'title', 'slug', 'category', 'publishers', 'authors', 'tags','average_rating',
                   'publish_date', 'num_pages', 'cover_image', 'page_image', 'condition', 'stock', 'created_at', 'updated_at'
                 ]
 

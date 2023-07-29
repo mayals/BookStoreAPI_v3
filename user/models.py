@@ -121,7 +121,6 @@ class SMSCode(models.Model):
     def save(self, *args, **kwargs):
         verification_code = random.randint(100000, 999999)
         self.OTP_code = str(verification_code)
-        self.user= self.request.user
         super().save(*args, **kwargs)
     
     def __str__(self):

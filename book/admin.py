@@ -27,18 +27,18 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(ReviewInfo)
 class ReviewInfoAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'created_at', 'updated_at']
-    list_filter  = [  'user', 'created_at', 'updated_at']
+    list_display = ['id', 'user', 'number_rating','created_at', 'updated_at']
+    list_filter  = [  'user', 'number_rating','created_at', 'updated_at']
     search_fields = [ 'user']
    
 
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display  = ['id', 'ISBN', 'title', 'category', 'average_rating','reviews','publish_date',
+    list_display  = ['id', 'ISBN', 'title',  'category', 'average_rating','publish_date',
                     'num_pages', 'condition', 'stock', 'created_at', 'updated_at']                   
 
-    list_filter   = ['title', 'category', 'publishers', 'authors','reviews']              
-    search_fields = ['title', 'authors','reviews']
+    list_filter   = ['title', 'category', 'publishers', 'authors']              
+    search_fields = ['title', 'authors']
     
     

@@ -121,9 +121,10 @@ class Tag(models.Model):
 # Review is the table that contain users reviews 
 class ReviewInfo(models.Model):
     id             = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False, related_name='user_reviews')
-    number_rating   = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
-    text_rating     = models.TextField(blank=True, null=True)
+    user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False)
+    book           = models.ForeignKey('book.Book', on_delete=models.CASCADE, null=True , blank=False)
+    number_rating  = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
+    text_rating    = models.TextField(blank=True, null=True)
     created_at     = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at     = models.DateTimeField(auto_now_add=False, auto_now=True)
       
@@ -150,11 +151,10 @@ class Book(models.Model):
     ISBN             = models.CharField(max_length=13, unique=True, blank=False, null=True)
     title            = models.CharField(max_length=100, unique=True, blank=False, null=True)
     slug             = models.SlugField(max_length=120, blank=True, null=True)
-    category         = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=False, related_name='category_books')            
+    category         = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=False)            
     publishers       = models.ManyToManyField(Publisher, blank=False)
     authors          = models.ManyToManyField(Author, blank=False) 
     tags             = models.ManyToManyField(Tag, blank=False)
-    reviews          = models.ForeignKey(ReviewInfo, on_delete=models.CASCADE, null=True, blank=False, related_name='book_reviews')            
     average_rating   = models.FloatField(default=0.0)
     publish_date     = models.DateField( null=True)
     num_pages        = models.IntegerField(blank=False, null=True)
