@@ -18,12 +18,12 @@ class CategorySerializer(serializers.ModelSerializer):
       
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'icon', 'created_at','category_books']
+        fields = ['id', 'name', 'slug', 'icon', 'created_at']
         extra_kwargs = {
                     'name' : {'required' : True },
                     'id'   : {'read_only': True },
                     'slug' : {'read_only': True },
-                    'category_books':{'read_only': True },
+                   
         }
 
 
