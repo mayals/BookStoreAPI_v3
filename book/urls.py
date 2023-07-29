@@ -19,6 +19,9 @@ urlpatterns =  router.urls  + [
     path('books/categories/<str:slug>/', views.BookViewSet.as_view({'get': 'retrieve'}, name='book:categories-detail')), #name=basename-detail
     path('books/publishers/<str:slug>/', views.BookViewSet.as_view({'get': 'retrieve'}, name='book:publishers-detail')),  #name=basename-detail
     path('books/authors/<str:slug>/', views.BookViewSet.as_view({'get': 'retrieve'}, name='book:authors-detail')),  #name=basename-detail
+    path('books/tags/<str:slug>/', views.TagViewSet.as_view({'get': 'retrieve'}, name='book:authors-detail')),  #name=basename-detail
+
+    
     # UserModel  model
     # path('register/', views.UserViewSet.as_view({'post': 'create'}), name='register'),    # UserModel
  

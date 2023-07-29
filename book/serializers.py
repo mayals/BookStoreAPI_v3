@@ -40,7 +40,6 @@ class PublisherSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Publisher name's must be unique")     
         return  value
     
-
     def validate_social_twitter(self, value): 
         if value is not None:
             hostnames = set(hostnames)
@@ -52,8 +51,6 @@ class PublisherSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('invalid url')
         return  value       
         
-    
-
     def validate_website(value):
         obj = urlparse(value)
         if 'com' not in obj.hostname or 'www' not in obj.hostname :   # url.hostname     "www.example.com"
@@ -96,9 +93,27 @@ class AuthorSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    
+    def validate_name(self, value):
+        if value is None:
+            raise serializers.ValidationError('This field is required') 
+        if Tag.objects.filter(name=value).exists():
+            raise serializers.ValidationError("tag name's must be unique")     
+        print(value)
+        return  value
+      
     class Meta:
         model = Tag
         fields = ['id', 'name', 'slug']
+        extra_kwargs = {
+                    'name' : {'required' : True },
+                    'id'   : {'read_only': True },
+                    'slug' : {'read_only': True },
+        }
+    
+
+
+
 
 
 

@@ -43,7 +43,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
 
     def get_permissions(self):
-        if self.action in["create","destroy"]:
+        if self.action in ['create','update','partial_update','destroy']:
             self.permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]   
         else:
             self.permission_classes = [permissions.AllowAny]       
@@ -54,7 +54,12 @@ class AuthorViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-       
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug' 
+
+
+
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
