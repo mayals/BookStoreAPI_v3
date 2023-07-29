@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from .models import Category, Publisher, Author, Tag, Review, Book
+from .models import Category, Publisher, Author, Tag, ReviewInfo, Book
 from rest_framework.validators import UniqueValidator
 from . import validators as CustomValidator
 from urllib.parse import urlparse
@@ -77,11 +77,11 @@ class AuthorSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
 
     def get_full_name(self, obj):
-        return obj.get_fullname
+        return obj.get_author_fullname
     
     class Meta:
         model = Author
-        fields = ['id', 'full_name','slug', 'first_name', 'last_name', 'email', 'bio', 'pic', 'website', 'created_at', 'updated_at']
+        fields = ['id', 'full_name', 'slug', 'first_name', 'last_name', 'email', 'bio', 'pic', 'website', 'created_at', 'updated_at']
         extra_kwargs = {
                     'name' : {'required' : True },
                     'id'   : {'read_only': True },
@@ -117,17 +117,22 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 
-class ReviewSerializer(serializers.ModelSerializer):
+class ReviewInfoSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+
     class Meta:
-        model = Review
-        fields = ['id', 'book', 'user', 'integerRating', 'textRating', 'created_at', 'updated_at']
+        model = ReviewInfo
+        fields = ['id', 'user', 'integer_rating', 'text_rating', 'created_at', 'updated_at']
+        
+
+
 
 
 
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = ['id', 'ISBN', 'title', 'slug', 'category', 'publishers', 'authors', 'tags','average_rating',
+        fields = ['id', 'ISBN', 'title', 'slug', 'category', 'publishers', 'authors', 'tags','reviews','average_rating',
                   'publish_date', 'num_pages', 'cover_image', 'page_image', 'condition', 'stock', 'created_at', 'updated_at'
                 ]
 

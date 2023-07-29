@@ -67,7 +67,7 @@ class Publisher(models.Model):
 
 
 class Author(models.Model):
-    id          = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
+    id         = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
     first_name = models.CharField(max_length=10, null=True)
     last_name  = models.CharField(max_length=10, null=True)
     slug       = models.SlugField(max_length=120, blank=True, null=True)
@@ -79,11 +79,11 @@ class Author(models.Model):
     updated_at = models.DateTimeField(auto_now_add=False,auto_now=True, null=True)
     
     @property
-    def get_fullname(self):
-        return f'{self.first_name}  {self.last_name}'
+    def get_author_fullname(self):
+        return f'{self.first_name} {self.last_name}'
     
     def __str__(self):
-        return self.get_fullname()
+        return self.get_author_fullname
 
     def save(self, *args, **kwargs):
         self.slug = slugify(str(self.first_name) +' '+ str(self.last_name))
@@ -119,17 +119,16 @@ class Tag(models.Model):
 
 
 # Review is the table that contain users reviews 
-class Review(models.Model):
+class ReviewInfo(models.Model):
     id             = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    book           = models.ForeignKey('Book', on_delete=models.CASCADE, null=True , blank=False, related_name='book_reviews')
     user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False, related_name='user_reviews')
-    integerRating  = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
-    textRating     = models.TextField(blank=True, null=True)
+    number_rating   = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
+    text_rating     = models.TextField(blank=True, null=True)
     created_at     = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at     = models.DateTimeField(auto_now_add=False, auto_now=True)
       
     def __str__(self):
-        return f"Review for '{self.book.title}' by {self.user.username}"
+        return f"Review for '{self.book.title}' by {self.user.get_user_fullname()}"
 
 
 
@@ -155,6 +154,7 @@ class Book(models.Model):
     publishers       = models.ManyToManyField(Publisher, blank=False)
     authors          = models.ManyToManyField(Author, blank=False) 
     tags             = models.ManyToManyField(Tag, blank=False)
+    reviews          = models.ForeignKey(ReviewInfo, on_delete=models.CASCADE, null=True, blank=False, related_name='book_reviews')            
     average_rating   = models.FloatField(default=0.0)
     publish_date     = models.DateField( null=True)
     num_pages        = models.IntegerField(blank=False, null=True)
@@ -172,12 +172,12 @@ class Book(models.Model):
         self.slug = slugify(self.title)
         super().save(*args, **kwargs)                                 
     
-    def calculate_average_rating(self):
-        book_reviews = self.book_reviews.all()
-        if book_reviews:
-            total_ratings = sum(rev.IntegerRating for rev in book_reviews)
-            return total_ratings / len(book_reviews)
-        return 0.0
+    # def calculate_average_rating(self):
+    #     book_reviews = self.book_reviews.all()
+    #     if book_reviews:
+    #         total_ratings = sum(rev.IntegerRating for rev in book_reviews)
+    #         return total_ratings / len(book_reviews)
+    #     return 0.0
     
     def get_absolute_url(self):
         return reverse('book-detail', kwargs = {'slug':self.slug})   # view_name='{model_name}-detail'
