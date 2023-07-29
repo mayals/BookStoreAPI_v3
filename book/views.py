@@ -40,7 +40,14 @@ class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_field = 'slug'    
+    lookup_field = 'slug'
+
+    def get_permissions(self):
+        if self.action in["create","destroy"]:
+            self.permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]   
+        else:
+            self.permission_classes = [permissions.AllowAny]       
+        return super().get_permissions()    
 
 
 
