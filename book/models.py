@@ -122,14 +122,14 @@ class Tag(models.Model):
 class ReviewInfo(models.Model):
     id             = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
     user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False)
-    book           = models.ForeignKey('book.Book', on_delete=models.CASCADE, null=True , blank=False)
+    book           = models.ForeignKey('book.Book', on_delete=models.CASCADE, null=True , blank=False ,related_name = 'reviewinfos')
     number_rating  = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
     text_rating    = models.TextField(blank=True, null=True)
     created_at     = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at     = models.DateTimeField(auto_now_add=False, auto_now=True)
       
     def __str__(self):
-        return f"Review for '{self.book.title}' by {self.user.get_user_fullname()}"
+        return f"Rating of '( {self.number_rating} ) stars' by {self.user.get_user_fullname}"
 
 
 
