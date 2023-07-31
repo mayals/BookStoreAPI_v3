@@ -119,12 +119,12 @@ class Tag(models.Model):
 
 
 # Review is the table that contain users reviews 
-class ReviewInfo(models.Model):
+class Review(models.Model):
     id             = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
     user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False)
-    book           = models.ForeignKey('book.Book', on_delete=models.CASCADE, null=True , blank=False ,related_name = 'reviewinfos')
-    number_rating  = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
-    text_rating    = models.TextField(blank=True, null=True)
+    book           = models.ForeignKey('book.Book', on_delete=models.CASCADE, null=True , blank=False ,related_name = 'reviews')
+    rating_value  = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
+    rating_text    = models.TextField(blank=True, null=True)
     created_at     = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at     = models.DateTimeField(auto_now_add=False, auto_now=True)
       
@@ -155,6 +155,7 @@ class Book(models.Model):
     publishers       = models.ManyToManyField(Publisher, blank=False)
     authors          = models.ManyToManyField(Author, blank=False) 
     tags             = models.ManyToManyField(Tag, blank=False)
+    reviews_count    = models.IntegerField(default=0)
     average_rating   = models.FloatField(default=0.0)
     publish_date     = models.DateField( null=True)
     num_pages        = models.IntegerField(blank=False, null=True)

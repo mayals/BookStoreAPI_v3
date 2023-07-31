@@ -1,6 +1,6 @@
 from rest_framework import viewsets,mixins,permissions
-from .models import Category,Publisher,Author,Tag,ReviewInfo,Book
-from .serializers import CategorySerializer,PublisherSerializer,AuthorSerializer,TagSerializer,ReviewInfoSerializer,BookSerializer
+from .models import Category,Publisher,Author,Tag,Review,Book
+from .serializers import CategorySerializer,PublisherSerializer,AuthorSerializer,TagSerializer,ReviewSerializer,BookSerializer
 
 #https://www.django-rest-framework.org/api-guide/viewsets/#custom-viewset-base-classes
 class CategoryViewSet(viewsets.mixins.CreateModelMixin, mixins.ListModelMixin, 
@@ -60,9 +60,9 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 
-class ReviewInfoViewSet(viewsets.ModelViewSet):
-    queryset = ReviewInfo.objects.all()
-    serializer_class = ReviewInfoSerializer
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
        
 
 

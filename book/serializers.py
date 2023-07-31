@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from .models import Category, Publisher, Author, Tag, ReviewInfo, Book
+from .models import Category, Publisher, Author, Tag, Review, Book
 from rest_framework.validators import UniqueValidator
 from . import validators as CustomValidator
 from urllib.parse import urlparse
@@ -117,12 +117,12 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 
-class ReviewInfoSerializer(serializers.ModelSerializer):
+class ReviewSerializer(serializers.ModelSerializer):
     user  = serializers.StringRelatedField()  #  many reviewsunfo (ForignKey) -  to   - one user (primary key)
     book  = serializers.StringRelatedField()  #  many reviewsinfo (ForignKey) -  to   - one book (primary key)  
     class Meta:
-        model = ReviewInfo
-        fields = ['id', 'user', 'book', 'integer_rating', 'text_rating', 'created_at', 'updated_at']
+        model = Review
+        fields = ['id', 'user', 'book', 'number_rating', 'text_rating', 'created_at', 'updated_at']
         
 
 
@@ -134,17 +134,17 @@ class BookSerializer(serializers.ModelSerializer):
     publishers = PublisherSerializer(many=True)  # Nested serialization
     authors = AuthorSerializer(many=True)  # Nested serialization
     tags = serializers.StringRelatedField(many=True, read_only=True)  # Nested serialization
-    reviewinfos = serializers.StringRelatedField(many=True, read_only=True)
+    reviews = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Book
         fields = ['id', 'ISBN', 'title', 'slug', 'category', 'publishers', 'authors', 'tags','average_rating',
-                  'publish_date', 'num_pages', 'cover_image', 'page_image', 'condition', 'stock', 'created_at', 'updated_at','reviewinfos'
+                  'publish_date', 'num_pages', 'cover_image', 'page_image', 'condition', 'stock', 'created_at', 'updated_at','reviews'
                 ]
         extra_kwargs = {
                     'title' : {'required' : True },
                     'id'   : {'read_only': True },
-                    'reviewinfos' : {'read_only': True },
+                    'reviews' : {'read_only': True },
         } 
 
 

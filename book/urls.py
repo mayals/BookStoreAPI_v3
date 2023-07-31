@@ -10,7 +10,7 @@ router.register('categories', views.CategoryViewSet, basename="categories")     
 router.register('publishers', views.PublisherViewSet, basename="publishers")    # Publisher 
 router.register('authors', views.AuthorViewSet, basename="authors")             # Author
 router.register('tags', views.TagViewSet, basename="tags")                      # Tags
-router.register('reviewinfos', views.ReviewInfoViewSet, basename="reviewinfos")     # ReviewInfo
+router.register('reviews', views.ReviewViewSet, basename="reviews")             # Review
 router.register('books', views.BookViewSet, basename="books")                   # Book
 
 
