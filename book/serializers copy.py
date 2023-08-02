@@ -66,9 +66,6 @@ class PublisherSerializer(serializers.ModelSerializer):
         fields = ['id','name', 'slug', 'address', 'website','social_twitter', 'created_at', 'updated_at']
         extra_kwargs = {
                     'name' : {'required' : True },
-                    'address' : {'required' : False },
-                    'website' : {'required' : False },
-                    'social_twitter' : {'required' : False },
                     'id'   : {'read_only': True },
                     'slug' : {'read_only': True },
                     'social_twitter' : {'required' : False },
@@ -90,13 +87,8 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = Author
         fields = ['id', 'full_name', 'slug', 'first_name', 'last_name', 'email', 'bio', 'pic', 'website', 'created_at', 'updated_at']
         extra_kwargs = {
-                    'full_name' : {'read_only':True },
-                    'website' : {'required' : False },
-                    'email' : {'required' : False },
-                    'bio' : {'required' : False },
-                    'social_twitter' : {'required' : False },
+                    'name' : {'required' : True },
                     'id'   : {'read_only': True },
-                    'last_name': {'required': True },
                     'slug' : {'read_only': True },
                     'pic' :  {'required' : False },
                     'books': {'read_only': True },
@@ -144,7 +136,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 class BookSerializer(serializers.ModelSerializer):
     title      = serializers.CharField(max_length=100,required=True) 
     # many to one field
-    category   = serializers.SlugRelatedField(queryset = Category.objects.all(), slug_field='slug')  # to display category_id asredable  use name field  insead of id field                                                                                                           #   many books(ForignKey)  -  to   - one category(primary key)
+    category   = serializers.SlugRelatedField(queryset = Category.objects.all(), slug_field = 'slug')  # to display category_id asredable  use name field  insead of id field                                                                                                           #   many books(ForignKey)  -  to   - one category(primary key)
     # many to many field
     publishers = PublisherSerializer(many=True) # Nested serialization
     authors    = AuthorSerializer(many=True) # Nested serialization
@@ -178,31 +170,29 @@ class BookSerializer(serializers.ModelSerializer):
         return reviews
     
     
-    def create(self, validated_data):
-        return validated_data
-    
-    # def create(self, validated_data):
-    #     publishers_data = validated_data.pop('publishers')
-    #     authors_data    = validated_data.pop('authors')
-    #     tags_data       = validated_data.pop('tags')
-        
-    #     book = Book.objects.create(**validated_data)
-    #     print(book)
-    #     for publisher_data in publishers_data:
-    #         publisher, created_publisher= Publisher.objects.get_or_create(**publisher_data)
-    #         book.publishers.add(publisher)
-    #         print(publishers_data)
-           
-    #     for author_data in authors_data:
-    #         author, created_author= Author.objects.get_or_create(**author_data)
-    #         book.authors.add(author)
-    #         print(authors_data)
 
-    #     for tag_data in tags_data:
-    #         tag, created_tag= Tag.objects.get_or_create(**tag_data)
-    #         book.tags.add(tag)
-    #         print(tags_data)
-    #     return book
+    
+    def create(self, validated_data):
+        publishers_data = validated_data.pop('publishers')
+        authors_data = validated_data.pop('authors')
+        tags_data = validated_data.pop('tags')
+        
+        book = Book.objects.create(**validated_data)
+        
+        for publisher_data in publishers_data:
+            publisher, created_publisher= Publisher.objects.get_or_create(**publisher_data)
+            book.publishers.add(publisher)
+            print(publishers_data)
+           
+        for author_data in authors_data:
+            author, created_author= Author.objects.get_or_create(**author_data)
+            book.authors.add(author)
+            print(authors_data)
+        for tag_data in tags_data:
+            tag, created_tag= Tag.objects.get_or_create(**tag_data)
+            book.tags.add(tag)
+            tags_data
+        return book
     
     
     

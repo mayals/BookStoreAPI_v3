@@ -11,9 +11,9 @@ from shortuuid.django_fields import ShortUUIDField
 
 class Category(models.Model):
     id          = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    name        = models.CharField(max_length=100, unique=True, null=True) 
+    name        = models.CharField(max_length=100, unique=True, null=True, blank=False) 
     slug        = models.SlugField(max_length=120, blank=True, null=True)
-    icon        = models.ImageField(upload_to = "book/category/%Y/%m/%d/", blank=False, null=True)
+    icon        = models.ImageField(upload_to = "book/category/%Y/%m/%d/", blank=True, null=True)
     created_at  = models.DateTimeField(auto_now_add=True,auto_now=False)
        
     def __str__(self):
@@ -25,6 +25,7 @@ class Category(models.Model):
     
     def get_absolute_url(self):
         return reverse('category-detail', kwargs = {'slug':self.slug})      # view_name='{model_name}-detail'    
+    
     
     class Meta:
         ordering = ('name',)
@@ -38,9 +39,9 @@ class Publisher(models.Model):
     id            = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
     name           = models.CharField(max_length=30, null=True)
     slug           = models.SlugField(max_length=120, blank=True, null=True)
-    address        = models.CharField(max_length=50, null=True)
-    website        = models.URLField(max_length = 255, null=True)
-    social_twitter = models.URLField(max_length = 255, null=True,)
+    address        = models.CharField(max_length=50, null=True, blank=True)
+    website        = models.URLField(max_length = 255, null=True, blank=True)
+    social_twitter = models.URLField(max_length = 255, null=True, blank=True)
     created_at     = models.DateTimeField(auto_now_add=True,auto_now=False, null=True)
     updated_at     = models.DateTimeField(auto_now_add=False,auto_now=True, null=True)
     # city           = models.CharField(max_length=60, null=True)
@@ -71,10 +72,10 @@ class Author(models.Model):
     first_name = models.CharField(max_length=10, null=True)
     last_name  = models.CharField(max_length=10, null=True)
     slug       = models.SlugField(max_length=120, blank=True, null=True)
-    email      = models.EmailField(null=True)
-    bio        = models.TextField()
-    pic        = models.ImageField(upload_to = "book/author/%Y/%m/%d/")
-    website    = models.URLField(max_length = 255, null=True)
+    email      = models.EmailField(null=True, blank=True)
+    bio        = models.TextField(blank=True)
+    pic        = models.ImageField(upload_to = "book/author/%Y/%m/%d/",blank=True)
+    website    = models.URLField(max_length = 255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(auto_now_add=False,auto_now=True, null=True)
     
@@ -106,7 +107,7 @@ class Author(models.Model):
 class Tag(models.Model):
     # Represents a tag for a book
     id   = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,blank=False)
     slug = models.SlugField(max_length=120, blank=True, null=True)
      
     def save(self, *args, **kwargs):
@@ -121,15 +122,16 @@ class Tag(models.Model):
 # Review is the table that contain users reviews 
 class Review(models.Model):
     id             = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False)
+    user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False, related_name = 'reviews')
     book           = models.ForeignKey('book.Book', on_delete=models.CASCADE, null=True , blank=False ,related_name = 'reviews')
-    rating_value  = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
-    rating_text    = models.TextField(blank=True, null=True)
     created_at     = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at     = models.DateTimeField(auto_now_add=False, auto_now=True)
-      
+    
+    rating_value   = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)])
+    rating_text    = models.TextField(blank=True, null=True)
+     
     def __str__(self):
-        return f"Rating of '( {self.number_rating} ) stars' by {self.user.get_user_fullname}"
+        return f"Rating of '( {self.rating_value} ) stars' by {self.user.get_user_fullname}"
 
 
 
@@ -148,23 +150,28 @@ class Book(models.Model):
                     (F,'Out Of Stock'),
     ]       
     id               = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    ISBN             = models.CharField(max_length=13, unique=True, blank=False, null=True)
+    ISBN             = models.CharField(max_length=13, unique=True, blank=True, null=True)
     title            = models.CharField(max_length=100, unique=True, blank=False, null=True)
     slug             = models.SlugField(max_length=120, blank=True, null=True)
-    category         = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=False)            
+    category         = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=False, related_name='books_category')            
     publishers       = models.ManyToManyField(Publisher, blank=False)
     authors          = models.ManyToManyField(Author, blank=False) 
     tags             = models.ManyToManyField(Tag, blank=False)
-    reviews_count    = models.IntegerField(default=0)
-    average_rating   = models.FloatField(default=0.0)
-    publish_date     = models.DateField( null=True)
-    num_pages        = models.IntegerField(blank=False, null=True)
-    cover_image      = models.FileField(upload_to = "book/cover_image/%Y/%m/%d/")
-    page_image       = models.FileField(upload_to = "book/page_image/%Y/%m/%d/")
-    condition        = models.CharField(max_length=20, choices= CONDITION_CHOICES, null=True, blank=False)
-    stock            = models.CharField(max_length=20, choices= STOCK_CHOICES, null=True, blank=False)
+    num_pages        = models.IntegerField(blank=True, null=True)
+    cover_image      = models.FileField(upload_to = "book/cover_image/%Y/%m/%d/", blank=True)
+    page_image       = models.FileField(upload_to = "book/page_image/%Y/%m/%d/", blank=True)
+    condition        = models.CharField(max_length=20, choices= CONDITION_CHOICES, null=True, blank=True)
+    stock            = models.CharField(max_length=20, choices= STOCK_CHOICES, null=True, blank=True)
     created_at       = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at       = models.DateTimeField(auto_now_add=False, auto_now=True)
+    publish_date     = models.DateField(null=True, blank=True)
+    
+    book_reviews     = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)], blank=True)                                     
+    reviews_count    = models.IntegerField(default=0)
+    average_rating   = models.FloatField(default=0.0)
+    
+    
+    
      
     def __str__(self):
         return str(self.title)
@@ -174,9 +181,9 @@ class Book(models.Model):
         super().save(*args, **kwargs)                                 
     
     # def calculate_average_rating(self):
-    #     book_reviews = self.book_reviews.all()
+    #     book_reviews = self.reviews_count.all()
     #     if book_reviews:
-    #         total_ratings = sum(rev.IntegerRating for rev in book_reviews)
+    #         total_ratings = sum(rev.rating_value for rev in book_reviews)
     #         return total_ratings / len(book_reviews)
     #     return 0.0
     
