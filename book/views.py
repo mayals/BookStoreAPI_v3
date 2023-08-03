@@ -82,7 +82,8 @@ class BookViewSet(viewsets.ModelViewSet):
         )
         new_book.save()
         print('new_book='+ str(new_book))
-        
+
+        # adding  the content of category field content
         cat_name = data.get('category')
         print('cat_name='+ str(type(cat_name)))   # string 
         print('cat_name='+ str(cat_name))
@@ -93,39 +94,58 @@ class BookViewSet(viewsets.ModelViewSet):
             new_book.save()
             print('new_book.category='+ str(new_book.category))
 
-
+        # adding the content of publishers field
         publishers_names = request.data.get('publishers')
         print('publishers_names='+ str(publishers_names))    
         print('publishers_names='+ str(type(publishers_names)))     # string       
-        publishers_names_list=publishers_names.split(',')
-        for item in publishers_names_list:
-            print('item='+ str(item))   
-            try:
-                publisher_obj, created = Publisher.objects.get_or_create(name=item)
-                # p= publisher_obj.save()
-                print('publisher_obj='+ str(publisher_obj))
-                # print('publisher_obj='+ str(publisher_obj))
-                new_book.publishers.add(publisher_obj)
-                new_book.save()
-            except Publisher.DoesNotExist:
-                pass    
+        if publishers_names :
+            publishers_names_list=publishers_names.split(',')
+            for item in publishers_names_list:
+                print('item='+ str(item))   
+                try:
+                    publisher_obj, created = Publisher.objects.get_or_create(name=item)
+                    print('publisher_obj='+ str(publisher_obj))
+                    new_book.publishers.add(publisher_obj)
+                    new_book.save()
+                except Publisher.DoesNotExist:
+                    pass    
         
         
+        # adding the content of authors field
+        authors_full_names = request.data.get('authors')
+        print('authors_full_names='+ str(authors_full_names))    
+        print('authors_full_names='+ str(type(authors_full_names)))     # string       
+        if authors_full_names:
+            authors_full_names_list=authors_full_names.split(',')
+            for item in authors_full_names_list:
+                print('item='+ str(item))   
+                try:
+                    author_obj, created = Author.objects.get_or_create(full_name=item)
+                    print('author_obj='+ str(author_obj))
+                    new_book.authors.add(author_obj)
+                    new_book.save()
+                except Author.DoesNotExist:
+                    pass   
+
+
         
-        for author_data in data.get('authors_data'):
-            try:
-                author_obj, created = Author.objects.get_or_create(full_name=author_data['full_name'])
-                new_book.authors.add(author_obj)    
-                new_book.save()
-            except Author.DoesNotExist:
-                pass
-        for tag_data in data.get('tags_data'):
-            try:
-                tag_obj, created = Tag.objects.get_or_create(name=tag_data['name'])
-                new_book.tags.add(tag_obj)
-                new_book.save()
-            except Tag.DoesNotExist:
-                pass
+        # adding the content of tags field
+        tags_names = request.data.get('tags')
+        print('tags_names='+ str(tags_names))    
+        print('tags_names='+ str(type(tags_names)))     # string       
+        if tags_names:
+            tags_names_list=tags_names.split(',')
+            for item in tags_names_list:
+                print('item='+ str(item))   
+                try:
+                    tag_obj, created = Tag.objects.get_or_create(name=item)
+                    print('tag_obj='+ str(tag_obj))
+                    new_book.tags.add(tag_obj)
+                    new_book.save()
+                except Author.DoesNotExist:
+                    pass   
+
+
         serializer = BookSerializer(new_book)
         return Response(serializer.data)
 

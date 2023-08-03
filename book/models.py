@@ -69,9 +69,10 @@ class Publisher(models.Model):
 
 class Author(models.Model):
     id         = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    first_name = models.CharField(max_length=10, null=True)
-    last_name  = models.CharField(max_length=10, null=True)
-    slug       = models.SlugField(max_length=120, blank=True, null=True)
+    first_name = models.CharField(max_length=50, null=True)
+    last_name  = models.CharField(max_length=50, null=True)
+    full_name  = models.CharField(max_length=200, blank=True, null=True)
+    slug       = models.SlugField(max_length=200, blank=True, null=True)
     email      = models.EmailField(null=True, blank=True)
     bio        = models.TextField(blank=True)
     pic        = models.ImageField(upload_to = "book/author/%Y/%m/%d/",blank=True)
@@ -88,6 +89,7 @@ class Author(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(str(self.first_name) +' '+ str(self.last_name))
+        self.full_name = str(self.first_name) +' '+ str(self.last_name)
         super().save(*args, **kwargs)      # Call the "real" save() method. 
     
     #vue view_name='{model_name}-detail'
