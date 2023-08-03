@@ -84,35 +84,44 @@ class BookViewSet(viewsets.ModelViewSet):
         print('new_book='+ str(new_book))
         
         cat_name = data.get('category')
-        
+        print('cat_name='+ str(type(cat_name)))   # string 
         print('cat_name='+ str(cat_name))
         if cat_name:
             category_obj = Category.objects.get(name= cat_name)
             print('category_obj='+ str(category_obj))
             new_book.category = category_obj 
             new_book.save()
-            print('new_book='+ str(new_book))
-             
-                         
-        for publisher_data in data.get('publishers_data',[]):
+            print('new_book.category='+ str(new_book.category))
+
+
+        publishers_names = request.data.get('publishers')
+        print('publishers_names='+ str(publishers_names))    
+        print('publishers_names='+ str(type(publishers_names)))     # string       
+        publishers_names_list=publishers_names.split(',')
+        for item in publishers_names_list:
+            print('item='+ str(item))   
             try:
-                publisher_obj = Publisher.objects.get(name= publisher_data.get('name'))
+                publisher_obj, created = Publisher.objects.get_or_create(name=item)
+                # p= publisher_obj.save()
                 print('publisher_obj='+ str(publisher_obj))
+                # print('publisher_obj='+ str(publisher_obj))
                 new_book.publishers.add(publisher_obj)
                 new_book.save()
-                print('new_book='+ str(new_book))
             except Publisher.DoesNotExist:
                 pass    
-        for author_data in data.get('authors_data',[]):
+        
+        
+        
+        for author_data in data.get('authors_data'):
             try:
-                author_obj = Author.objects.get(full_name= author_data.get('full_name'))
+                author_obj, created = Author.objects.get_or_create(full_name=author_data['full_name'])
                 new_book.authors.add(author_obj)    
                 new_book.save()
             except Author.DoesNotExist:
                 pass
-        for tag_data in data.get('tags_data',[]):
+        for tag_data in data.get('tags_data'):
             try:
-                tag_obj = Tag.objects.get(name= tag_data.get('name'))
+                tag_obj, created = Tag.objects.get_or_create(name=tag_data['name'])
                 new_book.tags.add(tag_obj)
                 new_book.save()
             except Tag.DoesNotExist:
