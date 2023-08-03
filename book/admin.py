@@ -15,9 +15,9 @@ class PublisherAdmin(admin.ModelAdmin):
       
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display  = ('id',"first_name", "last_name", 'created_at', 'updated_at')
-    list_filter   = ("first_name", "last_name", 'created_at', 'updated_at',)
-    search_fields = ("first_name", "last_name")
+    list_display  = ('id',"full_name", 'created_at', 'updated_at')
+    list_filter   = ("full_name", 'created_at', 'updated_at',)
+    search_fields = ("full_name",)
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
