@@ -6,29 +6,30 @@ from . import validators as CustomValidator
 from urllib.parse import urlparse
 
 class CategorySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(max_length=100,validators=[UniqueValidator(queryset=Category.objects.all())])    
+    name = serializers.CharField(max_length=100,required=True,validators=[UniqueValidator(queryset=Category.objects.all())])    
     books_category = serializers.SerializerMethodField
+    
     def validate_name(self, value):
         if value is None:
-            raise serializers.ValidationError('This field is required') 
+            raise serializers.ValidationError("The category's name is required") 
         if Category.objects.filter(name=value).exists():
-            raise serializers.ValidationError("category name's must be unique")     
+            raise serializers.ValidationError("The category name's must be unique")     
         print(value)
         return  value
     
-    def get_books_category(self, obj):
-        books_category = Book.category.all().filter(category=self)
-        return books_category
-
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug', 'icon', 'created_at','books_category']
         extra_kwargs = {
-                    'name' :  {'required' : True },
+                    'name' :  {'required' : True, 'unique':True},
                     'id'   :  {'read_only': True },
                     'slug' :  {'read_only': True },
                    'books_category':{'read_only':True},
         }
+
+        def get_books_category(self, obj):
+            books_category = Book.category.all().filter(category=self)
+            return books_category
 
 
 
@@ -39,9 +40,9 @@ class PublisherSerializer(serializers.ModelSerializer):
 
     def validate_name(self, value):
         if value is None:
-            raise serializers.ValidationError('This field is required') 
+            raise serializers.ValidationError("The publisher's name is required") 
         if Publisher.objects.filter(name=value).exists():
-            raise serializers.ValidationError("Publisher name's must be unique")     
+            raise serializers.ValidationError("The publisher name's must be unique")     
         return  value
     
     def validate_social_twitter(self, value): 
@@ -65,11 +66,13 @@ class PublisherSerializer(serializers.ModelSerializer):
         model = Publisher
         fields = ['id','name', 'slug', 'address', 'website','social_twitter', 'created_at', 'updated_at']
         extra_kwargs = {
-                    'name' : {'required' : True },
                     'id'   : {'read_only': True },
+                    'name' : {'required' : True, 'unique':True},
                     'slug' : {'read_only': True },
+                    'address' : {'required' : False },
+                    'website' : {'required' : False },
                     'social_twitter' : {'required' : False },
-                    'books': {'read_only': True },
+                    # 'books': {'read_only': True },
         }      
 
 
@@ -78,31 +81,44 @@ class PublisherSerializer(serializers.ModelSerializer):
   
 
 class AuthorSerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField()
+    full_name =serializers.CharField(max_length=200,required=True,validators=[UniqueValidator(queryset=Author.objects.all())] ) 
 
-    def get_full_name(self, obj):
-        return obj.get_author_fullname
-    
     class Meta:
         model = Author
-        fields = ['id', 'full_name', 'slug', 'first_name', 'last_name', 'email', 'bio', 'pic', 'website', 'created_at', 'updated_at']
+        fields = ['id', 'full_name', 'slug', 'email', 'bio', 'pic', 'website', 'created_at', 'updated_at']
         extra_kwargs = {
-                    'name' : {'required' : True },
-                    'id'   : {'read_only': True },
-                    'slug' : {'read_only': True },
-                    'pic' :  {'required' : False },
-                    'books': {'read_only': True },
+                    'id'        : {'read_only': True },
+                    'full_name' : {'required' : True, 'unique':True},
+                    'slug'      : {'read_only': True },
+                    'website'   : {'required' : False },
+                    'email'     : {'required' : False },
+                    'bio'       : {'required' : False },
+                    'pic'       :  {'required' : False },
+                    'books'     : {'read_only': True },
+                    'social_twitter' : {'required' : False },
         } 
+
+    def validate_full_name(self, value):
+        if value is None:
+            raise serializers.ValidationError("Author's full_name is required") 
+        if Author.objects.filter(full_name=value).exists():
+            raise serializers.ValidationError("Author's full_name must be unique")     
+        print(value)
+        return  value
+    
+    # def get_full_name(self, obj):
+    #     return obj.get_author_fullname 
+
 
 
 
 class TagSerializer(serializers.ModelSerializer):
-    
+
     def validate_name(self, value):
         if value is None:
-            raise serializers.ValidationError('This field is required') 
+            raise serializers.ValidationError('The Tag field is required') 
         if Tag.objects.filter(name=value).exists():
-            raise serializers.ValidationError("tag name's must be unique")     
+            raise serializers.ValidationError("The tag name's must be unique")     
         print(value)
         return  value
       
@@ -110,7 +126,7 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = ['id', 'name', 'slug']
         extra_kwargs = {
-                    'name' : {'required' : True },
+                    'name' : {'required' : True},
                     'id'   : {'read_only': True },
                     'slug' : {'read_only': True },
         }
@@ -134,24 +150,27 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class BookSerializer(serializers.ModelSerializer):
-    title      = serializers.CharField(max_length=100,required=True) 
+    title      = serializers.CharField(max_length=200,required=True,validators=[UniqueValidator(queryset=Book.objects.all())] )
     # many to one field
-    category   = serializers.SlugRelatedField(queryset = Category.objects.all(), slug_field = 'slug')  # to display category_id asredable  use name field  insead of id field                                                                                                           #   many books(ForignKey)  -  to   - one category(primary key)
+    category   = serializers.SlugRelatedField(required=True,queryset = Category.objects.all(), slug_field='slug')  # to display category_id asredable  use name field  insead of id field                                                                                                           #   many books(ForignKey)  -  to   - one category(primary key)
     # many to many field
-    publishers = PublisherSerializer(many=True) # Nested serialization
-    authors    = AuthorSerializer(many=True) # Nested serialization
-    tags       = TagSerializer(many=True)  # Nested serialization
+    publishers = PublisherSerializer(many=True, required=True) # Nested serialization
+    authors    = AuthorSerializer(many=True, required=True) # Nested serialization
+    tags       = TagSerializer(many=True, required=True)  # Nested serialization
     # related_field  read_only
-    reviews    = serializers.SerializerMethodField
+    reviews    = serializers.SerializerMethodField # read_only field from another table Review
 
     class Meta:
         model = Book
-        fields = ['id', 'ISBN', 'title', 'slug', 'category', 'publishers', 'authors', 'tags','average_rating','book_reviews',
-                  'publish_date', 'num_pages', 'cover_image', 'page_image', 'condition', 'stock', 'created_at', 'updated_at','reviews'
+        fields = ['id', 'title', 'slug', 'category', 'publishers', 'authors', 'tags',
+                  'ISBN','publish_date', 'num_pages', 'cover_image', 'page_image',
+                  'condition', 'stock', 'created_at', 'updated_at', 
+                  'average_rating', 'book_reviews',
+                  'reviews' # read_only 
                 ]
         extra_kwargs = {
                     'id'          : {'read_only': True },
-                    'title'       : {'required' : True },
+                    'title'       : {'required' : True, 'unique':True},
                     
                     'category'    : {'required' : True },
                     
@@ -169,30 +188,69 @@ class BookSerializer(serializers.ModelSerializer):
         reviews = Review.objects.all().filter(book=self)
         return reviews
     
+
+
+    def validate_title(self, value):
+        if value is None:
+            raise serializers.ValidationError('The title field is required') 
+        if Book.objects.filter(title=value).exists():
+            raise serializers.ValidationError("The book's title must be unique")     
+        print(value)
+        return  value
+
+    def validate_category(self, value):
+        if value is None:
+            raise serializers.ValidationError('The category field is required')     
+        print(value)
+        return  value
     
+    def validate_authors(self, value):
+        if value is None:
+            raise serializers.ValidationError('The authors field is required')     
+        print(value)
+        return  value
 
     
+    def validate_tags(self, value):
+        if value is None:
+            raise serializers.ValidationError('The tags field is required')     
+        print(value)
+        return  value
+
+    
+    def validate_publishers(self, value):
+        if value is None:
+            raise serializers.ValidationError('The publishers field is required')     
+        print(value)
+        return  value
+    
+
+
     def create(self, validated_data):
-        publishers_data = validated_data.pop('publishers')
-        authors_data = validated_data.pop('authors')
-        tags_data = validated_data.pop('tags')
+        return validated_data
+    
+    # def create(self, validated_data):
+    #     publishers_data = validated_data.pop('publishers')
+    #     authors_data    = validated_data.pop('authors')
+    #     tags_data       = validated_data.pop('tags')
         
-        book = Book.objects.create(**validated_data)
-        
-        for publisher_data in publishers_data:
-            publisher, created_publisher= Publisher.objects.get_or_create(**publisher_data)
-            book.publishers.add(publisher)
-            print(publishers_data)
+    #     book = Book.objects.create(**validated_data)
+    #     print(book)
+    #     for publisher_data in publishers_data:
+    #         publisher, created_publisher= Publisher.objects.get_or_create(**publisher_data)
+    #         book.publishers.add(publisher)
+    #         print(publishers_data)
            
-        for author_data in authors_data:
-            author, created_author= Author.objects.get_or_create(**author_data)
-            book.authors.add(author)
-            print(authors_data)
-        for tag_data in tags_data:
-            tag, created_tag= Tag.objects.get_or_create(**tag_data)
-            book.tags.add(tag)
-            tags_data
-        return book
+    #     for author_data in authors_data:
+    #         author, created_author= Author.objects.get_or_create(**author_data)
+    #         book.authors.add(author)
+    #         print(authors_data)
+
+    #     for tag_data in tags_data:
+    #         tag, created_tag= Tag.objects.get_or_create(**tag_data)
+    #         book.tags.add(tag)
+    #         print(tags_data)
+    #     return book
     
     
     

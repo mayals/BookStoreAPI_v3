@@ -71,7 +71,7 @@ class TagViewSet(viewsets.ModelViewSet):
  
 
 
-
+# https://docs.djangoproject.com/en/4.2/topics/db/models/#extra-fields-on-many-to-many-relationships
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -95,10 +95,12 @@ class BookViewSet(viewsets.ModelViewSet):
         print(data)  
         title = data.get('title')
         if title :
-            new_book = Book.objects.create( title= data.get('title')) # this for create book with only title field
+            
+            new_book = Book.objects.create(title= data.get('title')) # this for create book with only title field
             new_book.save()
             print('new_book='+ str(new_book))
  
+
             category = data.get('category')
             if category :
                 # adding  the content of category field content
@@ -117,58 +119,52 @@ class BookViewSet(viewsets.ModelViewSet):
                         # adding the content of publishers field
                         publishers_names = request.data.get('publishers',[])
                         print('publishers_names='+ str(publishers_names))    
-                        print('publishers_names='+ str(type(publishers_names)))    # string       
-                        if publishers_names : #string
-                            publishers_names_list=publishers_names.split(',')      # list of names
-                            for item in publishers_names_list: # loop on list to took the names
+                        print('publishers_names='+ str(type(publishers_names)))    # list of name strings      
+                        if publishers_names : # list of name strings
+                            for item in publishers_names: # loop on list to took the names
                                 print('item='+ str(item))   
-                                try:
-                                    publisher_obj, created = Publisher.objects.get_or_create(name=item) # get object by its name
-                                    print('publisher_obj='+ str(publisher_obj))
-                                    new_book.publishers.add(publisher_obj) #add object
+                            
+                                publisher_obj, created = Publisher.objects.get_or_create(name=item) # get object by its name
+                                # print('publisher_obj='+ str(publisher_obj))
+                                new_book.publishers.add(publisher_obj) #add object
+                            new_book.save()
+                               
+
+                            authors = data.get('authors')
+                            if authors : 
+                                # adding the content of authors field
+                                authors_full_names = request.data.get('authors',[])
+                                print('authors_full_names='+ str(authors_full_names))    
+                                print('authors_full_names='+ str(type(authors_full_names)))     # string       
+                                if authors_full_names:
+                                    # authors_full_names_list=authors_full_names.split(',')
+                                    for item in authors_full_names:
+                                        print('item='+ str(item))   
+                                        author_obj, created = Author.objects.get_or_create(full_name=item)
+                                        # print('author_obj='+ str(author_obj))
+                                        new_book.authors.add(author_obj)
                                     new_book.save()
-                                except Publisher.DoesNotExist:
-                                    pass 
-        
-        
-        # adding the content of authors field
-        authors_full_names = request.data.get('authors',[])
-        print('authors_full_names='+ str(authors_full_names))    
-        print('authors_full_names='+ str(type(authors_full_names)))     # string       
-        if authors_full_names:
-            authors_full_names_list=authors_full_names.split(',')
-            for item in authors_full_names_list:
-                print('item='+ str(item))   
-                try:
-                    author_obj, created = Author.objects.get_or_create(full_name=item)
-                    print('author_obj='+ str(author_obj))
-                    new_book.authors.add(author_obj)
-                    new_book.save()
-                except Author.DoesNotExist:
-                    pass   
-
-
-        # adding the content of tags field
-        tags_names = request.data.get('tags')
-        print('tags_names='+ str(tags_names))    
-        print('tags_names='+ str(type(tags_names)))     # string       
-        if tags_names:
-            tags_names_list=tags_names.split(',')
-            for item in tags_names_list:
-                print('item='+ str(item))   
-                try:
-                    tag_obj, created = Tag.objects.get_or_create(name=item)
-                    print('tag_obj='+ str(tag_obj))
-                    new_book.tags.add(tag_obj)
-                    new_book.save()
-                except Author.DoesNotExist:
-                    pass   
-
-
-        serializer = BookSerializer(new_book)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response({"error": "the fields : ('title' - 'category' - 'publishers' - 'authors' - 'tags') are required"})
+                                     
+                                       
+                                    tags = data.get('tags')
+                                    if tags :
+                                        # adding the content of tags field
+                                        tags_names = request.data.get('tags')
+                                        print('tags_names='+ str(tags_names))    
+                                        print('tags_names='+ str(type(tags_names)))     # string       
+                                        if tags_names:
+                                            # tags_names_list=tags_names.split(',')
+                                            for item in tags_names:
+                                                print('item='+ str(item))   
+                                                tag_obj, created = Tag.objects.get_or_create(name=item)
+                                                # print('tag_obj='+ str(tag_obj))
+                                                new_book.tags.add(tag_obj)
+                                            new_book.save()
+                                 
+                                            serializer = BookSerializer(new_book)
+                                            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": "the fields : ( title - category - publishers - authors - tags ) are required"})
 
    
 # class BookListCreateAPIView(generics.ListCreateAPIView):

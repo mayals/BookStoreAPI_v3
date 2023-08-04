@@ -188,7 +188,44 @@ class BookSerializer(serializers.ModelSerializer):
         reviews = Review.objects.all().filter(book=self)
         return reviews
     
+
+
+    def validate_title(self, value):
+        if value is None:
+            raise serializers.ValidationError('The title field is required') 
+        if Book.objects.filter(title=value).exists():
+            raise serializers.ValidationError("The book's title must be unique")     
+        print(value)
+        return  value
+
+    def validate_category(self, value):
+        if value is None:
+            raise serializers.ValidationError('The category field is required')     
+        print(value)
+        return  value
     
+    def validate_authors(self, value):
+        if value is None:
+            raise serializers.ValidationError('The authors field is required')     
+        print(value)
+        return  value
+
+    
+    def validate_tags(self, value):
+        if value is None:
+            raise serializers.ValidationError('The tags field is required')     
+        print(value)
+        return  value
+
+    
+    def validate_publishers(self, value):
+        if value is None:
+            raise serializers.ValidationError('The publishers field is required')     
+        print(value)
+        return  value
+    
+
+
     def create(self, validated_data):
         return validated_data
     
