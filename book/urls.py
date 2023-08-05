@@ -21,7 +21,7 @@ urlpatterns =  router.urls  + [
     path('books/tags/<str:slug>/', views.TagViewSet.as_view({'get': 'retrieve'}, name='book:tags-detail')),  #name=basename-detail
     path('books/books/<str:slug>/', views.BookViewSet.as_view({'get': 'retrieve'}, name='book:books-detail')),  
     
-    path("books/books/<str:slug>/create-review/", views.ReviewCreateAPIView.as_view(), name="book:book-create-review"),
+    path("books/books/<str:slug>/create-review/", views.ReviewCreateAPIView.as_view(), name="book-create-review"),
     path('books/reviews/<str:slug>/', views.ReviewViewSet.as_view({'get': 'retrieve'}, name='book:reviews-detail')), 
     
     #path("books/books/<str:pk>/reviews/", views.ReviewListView.as_view(), name="book_reviews-list"),
