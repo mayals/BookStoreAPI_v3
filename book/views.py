@@ -189,9 +189,18 @@ class BookViewSet(viewsets.ModelViewSet):
         #serializer = self.get_serializer(data=request.data)
         input_data = request.data
         data = input_data
-        # if not serializer.is_valid():
+        # if not serializer.is_valid(): not work because
         # return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-     
+        
+
+        print(data['title'])
+        if data['title'] == "" or data['category']  == "" or data['publishers']  == "" or data['authors']  == "" or data['tags'] == "" :
+            print(data['title'])
+            return response.Response({"error": "the fields : ( title - category - publishers - authors - tags ) are required"})
+    
+        title = data.get('title')
+        if  Book.objects.filter(title=title).exists():
+            return response.Response({"error":"The book's title must be unique"})
         istance_title = instance_obj.title
         updated_title = data.get('title', istance_title)
         
@@ -208,7 +217,7 @@ class BookViewSet(viewsets.ModelViewSet):
         print('updated_category_object type='+ str(type(updated_category_object))) #obj
         updated_book.category = updated_category_object
         
-        
+
         # modify updated_publishers_object
         list_instance_publishers_names = instance_obj.publishers
         print('list_instance_objects_names='+ str(list_instance_publishers_names))
