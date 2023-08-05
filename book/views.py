@@ -94,6 +94,20 @@ class BookViewSet(viewsets.ModelViewSet):
     # of types ForeignKey field and ManyToManyField  :
     # 'category' , 'publishers' , 'authors' and 'tags'
     # without this create function inside BookViewSet these fields remain empty ! 
+    
+  
+    """
+    # in postman we must POST data when send request as this mannar :
+    {
+    "title": "gggggg666",
+    "category": "english drama",
+    "publishers": ["china publisher","uae publisher"],
+    "authors": ["ali nasir"],
+    "tags": ["home tag"]
+    }
+    """
+
+
     def create(self,request,*args, **kwargs):
         data = request.data
         # print(data) 
@@ -130,7 +144,7 @@ class BookViewSet(viewsets.ModelViewSet):
         if publishers_names : # list of publishers names strings ['strnamepub1','strnamepub2','',...]
             for item in publishers_names: # loop on list to took the names
                 print('item='+ str(item))           
-                publisher_obj, created = Publisher.objects.get_or_create(name=item) # get object by its name
+                publisher_obj = Publisher.objects.get(name=item) # get object by its name
                 new_book.publishers.add(publisher_obj) #add object 
         new_book.save()
                     
@@ -142,7 +156,7 @@ class BookViewSet(viewsets.ModelViewSet):
         if authors_full_names:
             for item in authors_full_names:
                 print('item='+ str(item))   
-                author_obj, created = Author.objects.get_or_create(full_name=item)
+                author_obj = Author.objects.get(full_name=item)
                 # print('author_obj='+ str(author_obj))
                 new_book.authors.add(author_obj)
         new_book.save()
@@ -155,7 +169,7 @@ class BookViewSet(viewsets.ModelViewSet):
         if tags_names:
             for item in tags_names:
                 print('item='+ str(item))   
-                tag_obj, created = Tag.objects.get_or_create(name=item)
+                tag_obj = Tag.objects.get(name=item)
                 # print('tag_obj='+ str(tag_obj))
                 new_book.tags.add(tag_obj)
         new_book.save()
@@ -168,6 +182,106 @@ class BookViewSet(viewsets.ModelViewSet):
        
 
    
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance_obj = self.get_object()
+        #serializer = self.get_serializer(data=request.data)
+        input_data = request.data
+        data = input_data
+        # if not serializer.is_valid():
+        # return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+     
+        istance_title = instance_obj.title
+        updated_title = data.get('title', istance_title)
+        
+        updated_book = Book.objects.create(title = updated_title)
+        
+        # modify updated_category_object
+        istance_category_name = instance_obj.category.name
+        print('istance_category_name='+ str(istance_category_name))
+        print('istance_category_name type='+ str(type(istance_category_name)))  #str
+        print("hiii")
+        updated_category_name = data.get('category', istance_category_name)
+        updated_category_object = Category.objects.get(name= updated_category_name)
+        print('updated_category_object='+ str(updated_category_object))
+        print('updated_category_object type='+ str(type(updated_category_object))) #obj
+        updated_book.category = updated_category_object
+        
+        
+        # modify updated_publishers_object
+        list_instance_publishers_names = instance_obj.publishers
+        print('list_instance_objects_names='+ str(list_instance_publishers_names))
+        print('list_instance_objects_names type='+ str(type(list_instance_publishers_names)))
+        publishers_names = request.data.get('publishers',list_instance_publishers_names)
+        print('publishers_names='+ str(publishers_names))    
+        print('publishers_names='+ str(type(publishers_names)))    # list of name strings      
+        # list of publishers names strings ['strnamepub1','strnamepub2','',...]
+        for item in publishers_names: # loop on list to took the names
+            print('item='+ str(item))           
+            publisher_obj = Publisher.objects.get(name=item) # get object by its name
+            updated_book.publishers.add(publisher_obj) #add object 
+        updated_book.save()    
+        
+
+        # modify updated_authors_object
+        list_instance_authors_names = instance_obj.authors
+        print('list_instance_authors_names='+ str(list_instance_authors_names))
+        print('list_instance_authors_names type='+ str(type(list_instance_authors_names)))
+        authors_names = request.data.get('authors',list_instance_authors_names)
+        print('publishers_names='+ str(authors_names))    
+        print('publishers_names='+ str(type(authors_names)))    # list of name strings      
+        # list of authors names strings ['strnamepub1','strnamepub2','',...]
+        for item in authors_names: # loop on list to took the names
+            print('item='+ str(item))           
+            authors_obj = Author.objects.get(full_name=item) # get object by its name
+            updated_book.authors.add(authors_obj) #add object 
+        updated_book.save()
+
+
+        # modify updated_authors_object
+        list_instance_tags_names = instance_obj.tags
+        print('list_instance_tags_names='+ str( list_instance_tags_names))
+        print('list_instance_tags_names type='+ str(type( list_instance_tags_names)))
+        tags_names = request.data.get('tags',list_instance_tags_names)
+        print('tags_names='+ str(tags_names))    
+        print('tags_names='+ str(type(tags_names)))    # list of name strings      
+        # list of publishers names strings ['strnamepub1','strnamepub2','',...]
+        for item in tags_names: # loop on list to took the names
+            print('item='+ str(item))           
+            tags_obj = Tag.objects.get(name=item) # get object by its name
+            updated_book.tags.add(tags_obj) #add object 
+        updated_book.save()
+
+
+        updated_book.save()
+        serializer = BookSerializer(updated_book)
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+
+
+        # # print("kwargs="+str(kwargs))
+        # partial = kwargs.pop('partial', False)
+        # print("partial="+str(partial))
+        # instance = self.get_object()
+        # print("instance="+str(instance))
+        # serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        # serializer.is_valid(raise_exception=True)
+        # self.perform_update(serializer)
+
+        # if getattr(instance, '_prefetched_objects_cache', None):
+        #     # If 'prefetch_related' has been applied to a queryset, we need to
+        #     # forcibly invalidate the prefetch cache on the instance.
+        #     instance._prefetched_objects_cache = {}
+
+        # return response.Response(serializer.data)
+
+
+
+
+
 # class BookListCreateAPIView(generics.ListCreateAPIView):
 #     queryset = Book.objects.all()
 #     serializer_class = BookSerializer

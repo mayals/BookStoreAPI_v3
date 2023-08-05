@@ -152,7 +152,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 class BookSerializer(serializers.ModelSerializer):
     title      = serializers.CharField(max_length=200,required=True,validators=[UniqueValidator(queryset=Book.objects.all())] )
     # many to one field
-    category   = serializers.SlugRelatedField(required=True,queryset = Category.objects.all(), slug_field='slug')  # to display category_id asredable  use name field  insead of id field                                                                                                           #   many books(ForignKey)  -  to   - one category(primary key)
+    category   = serializers.StringRelatedField()  # to display category_id asredable  use name field  insead of id field                                                                                                           #   many books(ForignKey)  -  to   - one category(primary key)
     # many to many field
     publishers = PublisherSerializer(many=True, required=True) # Nested serialization
     authors    = AuthorSerializer(many=True, required=True) # Nested serialization
