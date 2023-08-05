@@ -3,9 +3,9 @@ from django.db import IntegrityError
 from rest_framework import viewsets, mixins, permissions, generics, response, status, validators
 from .models import Category,Publisher,Author,Tag,Review,Book
 from .serializers import CategorySerializer,PublisherSerializer,AuthorSerializer,TagSerializer,ReviewSerializer,BookSerializer
-
+from common import permissions as custom_permissions
 #https://www.django-rest-framework.org/api-guide/viewsets/#custom-viewset-base-classes
-
+from django_auto_prefetching import AutoPrefetchViewSetMixin
 
 # Not: category have no permission for update
 class CategoryViewSet(viewsets.mixins.CreateModelMixin, mixins.ListModelMixin, 
@@ -160,7 +160,8 @@ class BookViewSet(viewsets.ModelViewSet):
                 # print('author_obj='+ str(author_obj))
                 new_book.authors.add(author_obj)
         new_book.save()
-                                
+
+
         # adding the content of tags field                        
         tags = data.get('tags')
         tags_names = request.data.get('tags')
@@ -282,45 +283,14 @@ class BookViewSet(viewsets.ModelViewSet):
 
 
 
-# class BookListCreateAPIView(generics.ListCreateAPIView):
-#     queryset = Book.objects.all()
-#     serializer_class = BookSerializer
 
 
-
-
-class ReviewViewSet(viewsets.ModelViewSet):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = 'slug' 
-    
-    # def get_permissions(self):
-    #     if self.action in ['create','update','partial_update','destroy']:
-    #         self.permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]   
-    #     else:
-    #         self.permission_classes = [permissions.IsAuthenticated]       
-    #     return super().get_permissions()
-
-    def get_serializer_class(self):
-          self.serializer_class = ReviewSerializer 
-          return super().get_serializer_class()
-
-
-
-
-    # def perform_create(self, serializer): 
-    #     user = self.request.user 
-    #     book = self.kwargs.get('course_pk')
-    #     serializer.save(user=user,book=book) 
 
 
 class ReviewCreateAPIView(generics.CreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_field = 'slug' 
-    # renderer_classes = [CustomRenderer]
     
     def perform_create(self, serializer):
         # Ensure a user makes only ony one review per course
@@ -329,12 +299,91 @@ class ReviewCreateAPIView(generics.CreateAPIView):
             user = self.request.user
             if not Review.objects.filter(book=book,user=self.request.user).exists():    
                 serializer.save(book=book, user=self.request.user)
-                book.reviews_count += 1
+                # book.reviews_count+= 1
                 return response.Response(serializer.data, status=status.HTTP_201_CREATED)
             else:   #unique_together = ("user", "book") in models.Rview
                 raise validators.ValidationError({"IntegrityError": "This user has already created a review about this book"},)
-                                           
+
+
+
+
+class ReviewListAPIView(AutoPrefetchViewSetMixin, generics.ListAPIView):
+    serializer_class = ReviewSerializer 
+    queryset = Review.objects.all()
+    permission_classes = [custom_permissions.IsReviewCreatorOrReadOnly]
+    
+    # pagination_class = CustomPagination 
+    # renderer_classes = [CustomRenderer]
+    
+    def get_queryset(self):
+        slug = self.kwargs["slug"]
+        print(super().get_queryset().filter(user__is_active=True, book__slug=self.kwargs["slug"]))
+        return super().get_queryset().filter(user__is_active=True, book__slug=self.kwargs["slug"])
+
+
+
+
+
+class ReviewRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_permissions(self):
+        if self.action in ['update','partial_update','destroy']:
+            self.permission_classes = [permissions.IsAuthenticated,custom_permissions.IsCreatorOrReadOnly]   
+        else:
+            self.permission_classes = [permissions.IsAuthenticated]       
+        return super().get_permissions()
+    
+
+    def get_object(self):
+        id = self.kwargs["id"]
+        obj = get_object_or_404(Review, id=id)
+        self.check_object_permissions(self.request,obj)
+        return obj 
+
+
+
+
+
+    # def update(self, request, *args, **kwargs):
+    #     partial = kwargs.pop('partial', False)
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+
+    #     if getattr(instance, '_prefetched_objects_cache', None):
+    #         # If 'prefetch_related' has been applied to a queryset, we need to
+    #         # forcibly invalidate the prefetch cache on the instance.
+    #         instance._prefetched_objects_cache = {}
+
+    #     return response.Response(serializer.data, status=status.HTTP_201_CREATED)                                        
                                             
-                                            
                                            
-            
+
+
+# class ReviewViewSet(viewsets.ModelViewSet):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#     lookup_field = 'id' 
+
+#     def get_serializer_class(self):
+#           self.serializer_class = ReviewSerializer 
+#           return super().get_serializer_class()
+    # def get_permissions(self):
+    #     if self.action in ['create','update','partial_update','destroy']:
+    #         self.permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]   
+    #     else:
+    #         self.permission_classes = [permissions.IsAuthenticated]       
+    #     return super().get_permissions()
+
+    
+
+    # def perform_create(self, serializer): 
+    #     user = self.request.user 
+    #     book = self.kwargs.get('course_pk')
+    #     serializer.save(user=user,book=book) 

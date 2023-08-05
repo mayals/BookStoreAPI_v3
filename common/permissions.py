@@ -1,6 +1,8 @@
 from rest_framework import permissions
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
+
+
     """
     Custom permission to only allow owners of a resource object to edit it.
     Accessible to Admin users.
@@ -32,3 +34,28 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         
         return False
+    
+
+
+class IsReviewCreatorOrReadOnly(permissions.BasePermission):
+     
+    """
+    Custom permission to only allow owners of a resource object to edit it.
+    Accessible to Admin users.
+    """
+    def has_object_permission(self, request, view, obj):
+        # Allow Read-Only access to all users
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        # Allow full access to admin users.
+        if request.user.is_staff:
+            return True
+        
+        # Check if the object has a 'instructor' attribute, then return the truthiness.
+        if hasattr(obj, "user"):
+            return obj.user == request.user  #review.user = request.user
+        
+        
+        
+        
