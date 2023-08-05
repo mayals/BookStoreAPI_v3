@@ -6,7 +6,7 @@ from .models import Review, Book
 
 
 
-# @receiver([post_save, post_delete], sender=Review)
+@receiver([post_save, post_delete], sender=Review)
 def update_Book_stats(sender, instance, **kwargs):
     
     book = instance.book
@@ -20,12 +20,3 @@ def update_Book_stats(sender, instance, **kwargs):
         book.average_rating = Book._meta.get_field("average_rating").get_default()
     book.save()
 
-#     course = instance.course
-#     reviews = Review.objects.filter(course=course)
-#     course.reviews = reviews.count()
-#     # Get the average rating if there are at least 1 rating else return the default rating
-#     if course.reviews != 0:
-#         course.average_rating = reviews.aggregate(avg_rating=Avg('rating'))['avg_rating']
-#     else:
-#         course.average_rating = Course._meta.get_field("average_rating").get_default()
-#     course.save()

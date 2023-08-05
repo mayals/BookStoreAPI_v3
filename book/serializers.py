@@ -27,7 +27,7 @@ class CategorySerializer(serializers.ModelSerializer):
                    'books_category':{'read_only':True},
         }
 
-        def get_books_category(self, obj):
+    def get_books_category(self, obj):
             books_category = Book.category.all().filter(category=self)
             return books_category
 
@@ -149,15 +149,16 @@ class BookSerializer(serializers.ModelSerializer):
     tags       = TagSerializer(many=True, required=True)  # Nested serialization
     # related_field  read_only
     
-    reviews    = serializers.SerializerMethodField # read_only field from another table Review
-    reviews_count = serializers.SerializerMethodField
+    book_reviews    = serializers.SerializerMethodField # read_only field from another table Review
+    reviews_count   = serializers.SerializerMethodField
+    average_rating  = serializers.SerializerMethodField
     class Meta:
         model = Book
         fields = ['id', 'title', 'slug', 'category', 'publishers', 'authors', 'tags',
                   'ISBN','publish_date', 'num_pages', 'cover_image', 'page_image',
                   'condition', 'stock', 'created_at', 'updated_at', 
-                  'average_rating', 'book_reviews', 'reviews_count',
-                  'reviews' # read_only 
+                  'average_rating', 'reviews_count',
+                  'book_reviews' # read_only field from another table Review
                 ]
         extra_kwargs = {
                     'id'          : {'read_only': True },
@@ -171,18 +172,26 @@ class BookSerializer(serializers.ModelSerializer):
                     
                     'cover_image' : {'required' : False},
                     'page_image'  : {'required' : False},
-                    'reviews'     : {'read_only': True }, # related_field
+                    'book_reviews' : {'read_only': True }, # related_field
         } 
 
-    #reviews  related_field  read_only
-    def reviews(self):
+    #book_reviews  related_field  read_only
+    @property
+    def get_book_reviews(self):
         reviews = Review.objects.all().filter(book=self)
         return reviews
     
-    def reviews_count(self):
-        reviews_count = Review.objects.all().filter(book=self)
+    @property
+    def get_reviews_count(self):
+        reviews_count = Review.objects.all().filter(book=self).count()
         return reviews_count
 
+    
+
+
+
+    
+    # validate_field
     def validate_title(self, value):
         if value is None:
             raise serializers.ValidationError('The title field is required') 

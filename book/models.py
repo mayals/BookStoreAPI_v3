@@ -156,10 +156,14 @@ class Book(models.Model):
     updated_at       = models.DateTimeField(auto_now_add=False, auto_now=True)
     publish_date     = models.DateField(null=True, blank=True)
     
-    book_reviews     = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)], blank=True)                                     
+    # book_reviews     = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)], blank=True)                                     
     reviews_count    = models.IntegerField(default=0)
     average_rating   = models.FloatField(default=0.0)
 
+    def book_reviwes(self):
+        book_reviwes = Review.objects.all().filter(book=self)
+        return book_reviwes
+    
     def reviews_count(self):
             reviews_count = Review.objects.all().filter(book=self).count()
             return reviews_count
@@ -198,7 +202,7 @@ class Book(models.Model):
 class Review(models.Model):
     id             = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
     user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False, related_name = 'reviews')
-    book           = models.ForeignKey('book.Book', on_delete=models.CASCADE, null=True , blank=False ,related_name = 'reviews')
+    book           = models.ForeignKey('book.Book', on_delete=models.CASCADE, null=True , blank=False ,related_name = 'book_reviews')
     created_at     = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at     = models.DateTimeField(auto_now_add=False, auto_now=True)
     
