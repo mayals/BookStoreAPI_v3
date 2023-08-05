@@ -137,16 +137,6 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    user  = serializers.StringRelatedField()  #  many reviews (ForignKey) -  to   - one user (primary key)
-    book  = serializers.StringRelatedField()  #  many reviews (ForignKey) -  to   - one book (primary key)  
-    class Meta:
-        model = Review
-        fields = ['id', 'user', 'book', 'rating_value', 'rating_text', 'created_at', 'updated_at']
-        
-
-
-
 
 
 class BookSerializer(serializers.ModelSerializer):
@@ -158,14 +148,15 @@ class BookSerializer(serializers.ModelSerializer):
     authors    = AuthorSerializer(many=True, required=True) # Nested serialization
     tags       = TagSerializer(many=True, required=True)  # Nested serialization
     # related_field  read_only
+    
     reviews    = serializers.SerializerMethodField # read_only field from another table Review
-
+    reviews_count = serializers.SerializerMethodField
     class Meta:
         model = Book
         fields = ['id', 'title', 'slug', 'category', 'publishers', 'authors', 'tags',
                   'ISBN','publish_date', 'num_pages', 'cover_image', 'page_image',
                   'condition', 'stock', 'created_at', 'updated_at', 
-                  'average_rating', 'book_reviews',
+                  'average_rating', 'book_reviews', 'reviews_count',
                   'reviews' # read_only 
                 ]
         extra_kwargs = {
@@ -184,11 +175,13 @@ class BookSerializer(serializers.ModelSerializer):
         } 
 
     #reviews  related_field  read_only
-    def get_reviews(self):
+    def reviews(self):
         reviews = Review.objects.all().filter(book=self)
         return reviews
     
-
+    def reviews_count(self):
+        reviews_count = Review.objects.all().filter(book=self)
+        return reviews_count
 
     def validate_title(self, value):
         if value is None:
@@ -294,3 +287,15 @@ class BookSerializer(serializers.ModelSerializer):
     #     for tag_data in tags_data:
     #         Book.objects.create(book=book, **tag_data)
     #     return book
+
+
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user  = serializers.StringRelatedField()  #  many reviews (ForignKey) -  to   - one user (primary key)
+    book  = serializers.StringRelatedField()  #  many reviews (ForignKey) -  to   - one book (primary key)  
+    class Meta:
+        model = Review
+        fields = ['id', 'user', 'book', 'rating_value', 'rating_text', 'created_at', 'updated_at']
+        
+

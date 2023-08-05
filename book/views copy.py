@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets,mixins,permissions, generics
+from django.db import IntegrityError
+from rest_framework import viewsets, mixins, permissions, generics, response, status, validators
 from .models import Category,Publisher,Author,Tag,Review,Book
 from .serializers import CategorySerializer,PublisherSerializer,AuthorSerializer,TagSerializer,ReviewSerializer,BookSerializer
-from rest_framework import response
-from rest_framework import status
+
 #https://www.django-rest-framework.org/api-guide/viewsets/#custom-viewset-base-classes
 
 
@@ -189,9 +189,18 @@ class BookViewSet(viewsets.ModelViewSet):
         #serializer = self.get_serializer(data=request.data)
         input_data = request.data
         data = input_data
-        # if not serializer.is_valid():
+        # if not serializer.is_valid(): not work because
         # return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-     
+        
+
+        print(data['title'])
+        if data['title'] == "" or data['category']  == "" or data['publishers']  == "" or data['authors']  == "" or data['tags'] == "" :
+            print(data['title'])
+            return response.Response({"error": "the fields : ( title - category - publishers - authors - tags ) are required"})
+    
+        title = data.get('title')
+        if  Book.objects.filter(title=title).exists():
+            return response.Response({"error":"The book's title must be unique"})
         istance_title = instance_obj.title
         updated_title = data.get('title', istance_title)
         
@@ -208,7 +217,6 @@ class BookViewSet(viewsets.ModelViewSet):
         print('updated_category_object type='+ str(type(updated_category_object))) #obj
         updated_book.category = updated_category_object
         
-        
         # modify updated_publishers_object
         list_instance_publishers_names = instance_obj.publishers
         print('list_instance_objects_names='+ str(list_instance_publishers_names))
@@ -223,7 +231,6 @@ class BookViewSet(viewsets.ModelViewSet):
             updated_book.publishers.add(publisher_obj) #add object 
         updated_book.save()    
         
-
         # modify updated_authors_object
         list_instance_authors_names = instance_obj.authors
         print('list_instance_authors_names='+ str(list_instance_authors_names))
@@ -238,7 +245,6 @@ class BookViewSet(viewsets.ModelViewSet):
             updated_book.authors.add(authors_obj) #add object 
         updated_book.save()
 
-
         # modify updated_authors_object
         list_instance_tags_names = instance_obj.tags
         print('list_instance_tags_names='+ str( list_instance_tags_names))
@@ -252,14 +258,10 @@ class BookViewSet(viewsets.ModelViewSet):
             tags_obj = Tag.objects.get(name=item) # get object by its name
             updated_book.tags.add(tags_obj) #add object 
         updated_book.save()
-
-
+        # save updated book  obj
         updated_book.save()
         serializer = BookSerializer(updated_book)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-
 
 
         # # print("kwargs="+str(kwargs))
@@ -280,8 +282,6 @@ class BookViewSet(viewsets.ModelViewSet):
 
 
 
-
-
 # class BookListCreateAPIView(generics.ListCreateAPIView):
 #     queryset = Book.objects.all()
 #     serializer_class = BookSerializer
@@ -292,10 +292,47 @@ class BookViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-       
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug' 
+    
+    # def get_permissions(self):
+    #     if self.action in ['create','update','partial_update','destroy']:
+    #         self.permission_classes = [permissions.IsAuthenticated,permissions.IsAdminUser]   
+    #     else:
+    #         self.permission_classes = [permissions.IsAuthenticated]       
+    #     return super().get_permissions()
+
+    def get_serializer_class(self):
+          self.serializer_class = ReviewSerializer 
+          return super().get_serializer_class()
+
+
+
+
     # def perform_create(self, serializer): 
     #     user = self.request.user 
     #     book = self.kwargs.get('course_pk')
     #     serializer.save(user=user,book=book) 
 
 
+class ReviewCreateAPIView(generics.CreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'slug' 
+    # renderer_classes = [CustomRenderer]
+    
+    def perform_create(self, serializer):
+        # Ensure a user makes only ony one review per course
+        try:
+            book_slug = self.kwargs["slug"]
+            book = get_object_or_404(Book, slug=book_slug)
+            serializer.save(book=book, user=self.request.user)
+            book.reviews_count += 1
+        except IntegrityError:  #unique_together = ("user", "book") in models.Rview
+            raise validators.ValidationError({"detail": "This user has already created a review about this book"})
+                                           
+                                            
+                                            
+                                           
+            

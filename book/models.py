@@ -160,6 +160,10 @@ class Book(models.Model):
     reviews_count    = models.IntegerField(default=0)
     average_rating   = models.FloatField(default=0.0)
 
+    def reviews_count(self):
+            reviews_count = Review.objects.all().filter(book=self).count()
+            return reviews_count
+        
     def __str__(self):
         return str(self.title)
 
@@ -205,4 +209,6 @@ class Review(models.Model):
         return f"Rating of '( {self.rating_value} ) stars' by {self.user.get_user_fullname}"
 
 
-
+    class Meta:
+        unique_together = ("user", "book")
+        ordering = ["updated_at"]
