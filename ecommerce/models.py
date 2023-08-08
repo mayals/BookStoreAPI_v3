@@ -38,7 +38,7 @@ class Order(models.Model):
     # payment_method  = models.CharField(max_length = 20)
     # shipping_method = models.ForeignKey(ShippingMethod, on_delete=models.CASCADE, null=True , blank=False, related_name='orders')
     def __str__(self):
-        return f"Order #{self.id}     belong to customer:{self.order.user.email}"
+        return f"Order #{self.id}   belong to customer:{self.order.user.email}"
     
     def get_absolute_url(self):
         return reverse('order-detail', kwargs = {'id':self.id})      #vue view_name='{model_name}-detail'
