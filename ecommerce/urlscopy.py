@@ -11,7 +11,7 @@ router.register('publishers', views.PublisherViewSet, basename="publishers")    
 router.register('authors', views.AuthorViewSet, basename="authors")             # Author
 router.register('tags', views.TagViewSet, basename="tags")                      # Tags
 router.register('books', views.BookViewSet, basename="books")                   # Book
-# router.register('reviews', views.ReviewViewSet, basename="reviews")           # Review
+# router.register('reviews', views.ReviewViewSet, basename="reviews")             # Review
 
 # The API URLs are now determined automatically by the router.
 urlpatterns =  router.urls  + [
