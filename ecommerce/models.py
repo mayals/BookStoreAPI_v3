@@ -8,52 +8,68 @@ from django.utils import timezone
 from shortuuid.django_fields import ShortUUIDField 
 
  
-class BookOrdering(models.Model):
-    id              = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    book            = models.ForeignKey('book.Book', on_delete=models.CASCADE,  null=True , blank=False, related_name='book_orders')
-    order           = models.ForeignKey('Order', on_delete=models.CASCADE, null=True , blank=False, related_name='order_books')
-    bookQuantity    = models.PositiveIntegerField(default=0)
-    bookPrice       = models.DecimalField(default=00.00,max_digits=10, decimal_places=2)
-      
+class OrderBook(models.Model):
+    id         = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
+    order      = models.ForeignKey('Order', on_delete=models.CASCADE, null=True , blank=False, related_name='orderbooks')
+    book       = models.ForeignKey('book.Book', on_delete=models.CASCADE,  null=True , blank=False, related_name='orderbooks')
+    quantity   = models.PositiveIntegerField(default=1, null=True, blank=False)
+    price      = models.DecimalField(default=00.00, max_digits=10, decimal_places=2 ,blank=False)
+    book_title = models.CharField(max_length=200, default="", blank=True)  
     def __str__(self):
-            return f"Book ordering by {self.order.user.email} on {self.bookQuantity} x {self.book.title} in Order #{self.order.id}"
+             return 'order id'+str(self.order.id)+'user'+str(self.order.user.email)+"book"+str(self.book.title)
            
 
 
 
-class Order(models.Model):
-    STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('PROCESSING', 'Processing'),
-        ('SHIPPED', 'Shipped'),
-        ('DELIVERED', 'Delivered'),
-        ('CANCELLED', 'Cancelled'),
-    ]
 
+
+class OrderStatus(models.TextChoices):
+    PENDING    = 'Pending'
+    PROCESSING = 'Processing'
+    SHIPPED    = 'Shipped'
+    DELIVERED  = 'Delivered'
+    CANCELLED  = 'Cancelled'
+
+class PaymentStatus(models.TextChoices):
+    PAID   = 'Paid'
+    UNPAID = 'Unpaid' 
+
+class PaymentMode(models.TextChoices):
+    COD  = 'COD'
+    CARD = 'CARD' 
+
+class Order(models.Model):
     id             = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False, related_name='user_orders')
-    books          = models.ManyToManyField('book.Book',through='BookOrdering') 
+    user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False, related_name='orders')
     order_date     = models.DateTimeField(auto_now_add=True, auto_now=False)   
-    total_quantity = models.DecimalField(default =0.0,max_digits=10, decimal_places=2,blank=True)
-    status         = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
-    # shipping_address = models.TextField()
-    # payment_method  = models.CharField(max_length = 20)
-    # shipping_method = models.ForeignKey(ShippingMethod, on_delete=models.CASCADE, null=True , blank=False, related_name='orders')
+    total_amount   = models.IntegerField(default=0)
+    city           = models.CharField(max_length=400, default="", blank=False)
+    zip_code       = models.CharField(max_length=100, default="", blank=False)
+    street         = models.CharField(max_length=500, default="", blank=False)
+    state          = models.CharField(max_length=100, default="", blank=False)
+    country        = models.CharField(max_length=100, default="", blank=False)
+    phone_no       = models.CharField(max_length=100, default="", blank=False)
+    payment_status = models.CharField(max_length=30, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID)
+    payment_mode   = models.CharField(max_length=30, choices=PaymentMode.choices, default=PaymentMode.COD)
+    status         = models.CharField(max_length=60, choices=OrderStatus.choices, default=OrderStatus.PROCESSING)
+   
     def __str__(self):
-        return f"Order #{self.id}   belong to customer:{self.user.email}"
+        return f"Order No. #{self.id}"
     
     def get_absolute_url(self):
-        return reverse('order-detail', kwargs = {'id':self.id})      #vue view_name='{model_name}-detail'
+        return reverse('order-detail', kwargs = {'id':self.id})      # view_name='{model_name}-detail'
     
-    def get_order_books(self):
-        return self.BookOrdering_set.all()
+    class Meta:
+        ordering = ('order_date',)
+        verbose_name = 'Order'
+        verbose_name_plural = 'Orders'
     
-    def get_total_quantity(self):
-        total_quantity = 0
-        order_books = self.get_order_books()
-        for item in order_books:
-            total_quantity += item.bookQuantity
-        return total_quantity
+    # def get_total_quantity(self):
+    #     total_quantity = 0
+    #     order_books = self.get_order_books()
+    #     for item in order_books:
+    #         total_quantity += item.bookQuantity
+    #     return total_quantity
 
     # def get_total_price(self):
     #     total_price = 0.0
@@ -62,10 +78,7 @@ class Order(models.Model):
     #         total_price += item.bookPrice * item.bookQuantity
     #     return total_price
     
-    class Meta:
-        ordering = ('order_date',)
-        verbose_name = 'Order'
-        verbose_name_plural = 'Orders'
+    
 
    
 

@@ -1,24 +1,43 @@
 from rest_framework import serializers
-from.models import Book, BookOrdering, Order, Cart, Payment
+from.models import Book, OrderBook, Order, Cart, Payment
 from book.serializers import BookSerializer
 
-class BookOrderingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BookOrdering
-        fields = ['id', 'Book', 'order', 'bookQuantity', 'bookPrice']
 
+
+class OrderBookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderBook
+        fields = ['id','order', 'book', 'quantity', 'price' ,'book_title']
+    extra_kwargs = {
+                    'id'        : {'read_only': True },
+                    'order'     : {'read_only': True },          
+                    'book'      : {'required': True },
+                    'book_title': {'required': False },
+        }
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
-    books = BookSerializer(required=False, read_only=True)
+    orderbooks = serializers.SerializerMethodField(method_name="get_orderbooks")      # related_field
     class Meta:
         model = Order
-        fields = ['id', 'user', 'books', 'order_date', 'total_quantity', 'status']
+        fields = ['id', 'user', 'order_date', 'status',
+                  'total_amount', 'city', 'zip_code', 'street', 'state',
+                  'country', 'phone_no', 'payment_status', 'payment_mode',  
+                  'orderbooks', # related_field -- come from OrderBook model         
+        ]
 
-    def get_user(self):
-        return self.request.user
-
+        extra_kwargs = {
+                    'id'        : {'read_only': True },
+                    'user'      : {'read_only': True }, # take user value from authentication         
+                    'orderbooks': {'read_only': False,'required':True}, # related_field -- come from OrderBook model
+        } 
+      
+    def get_orderbooks(self,obj): # obj --order
+        orderbooks = obj.orderbooks.all()
+        serializer = OrderBookSerializer(orderbooks,many=True)
+        return serializer.data 
+    
+   
 
 
 

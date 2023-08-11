@@ -155,7 +155,7 @@ class Book(models.Model):
     created_at       = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at       = models.DateTimeField(auto_now_add=False, auto_now=True)
     publish_date     = models.DateField(null=True, blank=True)
-    
+    bookPrice       = models.DecimalField(default=00.00,max_digits=10, decimal_places=2, null=True, blank=True)
     # book_reviews     = models.PositiveIntegerField(default=0, validators= [ MinValueValidator(0), MaxValueValidator(5)], blank=True)                                     
     reviews_count    = models.IntegerField(default=0)
     average_rating   = models.FloatField(default=0.0)

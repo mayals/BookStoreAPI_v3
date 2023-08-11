@@ -15,7 +15,8 @@ router.register('orders', views.OrderViewSet, basename="orders")     # Order
 urlpatterns =  router.urls  + [
     # Order Endpoints:
     path('orders/orders/<str:order_id>/', views.OrderViewSet.as_view({'get':'retrieve'}, name='ecommrce:orders-detail')),   #name=basename-detail
-    path('orders/<str:book_id>/create_order/', views.OrderCreateAPIView.as_view(), name="create_order"),
+    path('orders/create_order/', views.OrderCreateAPIView.as_view(), name="create_order"),
+    #('orders/<str:book_id>/create_order/', views.OrderCreateAPIView.as_view(), name="create_order"),
     # path('ordrs/orders/<int:id>/cancel/', views.ReviewRetrieveUpdateDestroyAPIView.as_view(),name='retrieve-update-destroy-review'),
     # Cart and Checkout Endpoints:
     # /cart/add

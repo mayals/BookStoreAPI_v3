@@ -1,17 +1,19 @@
 from django.contrib import admin
-from .models import BookOrdering, Order, Cart
+from .models import OrderBook, Order, Cart
 
 
-@admin.register(BookOrdering)
-class BookOrderingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'book', 'order', 'bookQuantity', 'bookPrice']
-    list_filter = ['book', 'order', 'bookQuantity', 'bookPrice']
+@admin.register(OrderBook)
+class OrderBookAdmin(admin.ModelAdmin):
+    list_display = ['id', 'book', 'order', 'quantity', 'price', 'book_title']
+    list_filter = [ 'quantity', 'price', 'book_title']
+
+
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'order_date', 'total_quantity', 'status']
-    list_filter = ['user', 'books', 'order_date', 'total_quantity', 'status']
+    list_display = ['id', 'user', 'order_date', 'total_amount', 'status']
+    list_filter = ['user', 'order_date', 'total_amount', 'status']
 
 
 @admin.register(Cart)
