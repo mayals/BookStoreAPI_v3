@@ -17,7 +17,7 @@ class OrderBookSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    orderbooks = serializers.SerializerMethodField(method_name="get_orderbooks")      # related_field
+    orderbooks = serializers.SerializerMethodField(method_name="get_orderbooks",read_only=True)      # related_field--  must be read only true
     class Meta:
         model = Order
         fields = ['id', 'user', 'order_date', 'status',
@@ -29,13 +29,14 @@ class OrderSerializer(serializers.ModelSerializer):
         extra_kwargs = {
                     'id'        : {'read_only': True },
                     'user'      : {'read_only': True }, # take user value from authentication         
-                    'orderbooks': {'read_only': False,'required':True}, # related_field -- come from OrderBook model
+                    'orderbooks': {'read_only': True } #, # related_field -- come from OrderBook model # MUST BE READ ONLY TRUE 
         } 
       
-    def get_orderbooks(self,obj): # obj --order
-        orderbooks = obj.orderbooks.all()
-        serializer = OrderBookSerializer(orderbooks,many=True)
-        return serializer.data 
+    @property
+    def get_orderbooks(self): # obj --order
+        orderbooks = OrderBook.objects.all().filter(order=self)
+        
+        return orderbooks
     
    
 

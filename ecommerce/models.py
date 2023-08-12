@@ -18,7 +18,7 @@ class OrderBook(models.Model):
     def __str__(self):
              return 'order id'+str(self.order.id)+'user'+str(self.order.user.email)+"book"+str(self.book.title)
            
-
+    
 
 
 
@@ -64,6 +64,10 @@ class Order(models.Model):
         verbose_name = 'Order'
         verbose_name_plural = 'Orders'
     
+
+    
+
+
     # def get_total_quantity(self):
     #     total_quantity = 0
     #     order_books = self.get_order_books()

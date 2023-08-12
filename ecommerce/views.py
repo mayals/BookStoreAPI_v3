@@ -5,10 +5,10 @@ from book.models import Book
 from .serializers import OrderSerializer,OrderBookSerializer
 from django.utils import timezone
 
-class OrderViewSet(viewsets.ModelViewSet):
-    queryset= Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# class OrderViewSet(viewsets.ModelViewSet):
+#     queryset= Order.objects.all()
+#     serializer_class = OrderSerializer
+#     permission_classes = [permissions.IsAuthenticated]
     
  
 
@@ -16,6 +16,7 @@ class OrderCreateAPIView(generics.CreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ["post"]
 
     def perform_create(self, serializer):   
         order = Order.objects.filter(user=self.request.user)
@@ -25,24 +26,28 @@ class OrderCreateAPIView(generics.CreateAPIView):
                                   #'total_amount', 'city', 'zip_code', 'street', 'state',
                                   #'country', 'phone_no', 'payment_status', 'payment_mode',  
                                   #'orderbooks', # related_field -- come from OrderBook model  
-            data = self.rquest.data                     
+            data = self.request.data
+            print("data=" + str(data))                     
             orderbooks = self.request.data['orderbooks']  #this data come  from related field orderbooks fom anothe model OrderBook
             
             if orderbooks and len(orderbooks) == 0:
                 return response.Response({'error': 'No order recieved'},status=status.HTTP_400_BAD_REQUEST)
             else:
-                for item in orderbooks:
-                    total_amount = sum( item['price'] * item['quantity'] ) #'price' #'quantity' fields come from the related field orderbooks
+               
+                total_amount = sum(float(item['price']) * int(item['quantity']) for item in orderbooks)
+                # total_amount = sum( item['price']* item['quantity'] for item in orderbooks)
+                    # total_amount = sum( int(item['price']) * int(item['quantity']) ) #'price' #'quantity' fields come from the related field orderbooks
   
                 # CREATE NEW ORDER #                   
                 order = Order.objects.create(
                                         user         = self.request.user,
                                         order_date   = timezone.now(),
-                                        city         = self.rquest.data['city'],
-                                        zip_code     = self.rquest.data['zip_code'],
-                                        street       = self.rquest.data['street'],
-                                        phone_no     = self.rquest.data['phone_no'],
-                                        country      = self.rquest.data['country'],
+                                        city         = self.request.data['city'],
+                                        zip_code     = self.request.data['zip_code'],
+                                        street       = self.request.data['street'],
+                                        phone_no     = self.request.data['phone_no'],
+                                        country      = self.request.data['country'],
+                                        state        = self.request.data['state'],
                                         total_amount = total_amount
                 )
 
