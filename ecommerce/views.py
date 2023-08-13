@@ -38,15 +38,17 @@ def new_order(request):
             ## orderbooks items  meaning CART items
             # Start adding items of orderbooks in the new_order we created above ## i.e., start add to cart that inside this order ##
             for item in orderbooks:
-                        book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
-                        book_title = book.title 
-                        orderbook = OrderBook.objects.create(
-                                                            book= book,
-                                                            order = new_order, # the order we created above 
-                                                            quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
-                                                            price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
-                                                            book_title = book_title
-                        )
+                    book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
+                    book_title = book.title 
+                    orderbook = OrderBook.objects.create(
+                                                        book= book,
+                                                        order = new_order, # the order we created above 
+                                                        quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
+                                                        price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
+                                                        book_title = book_title
+                    )
+                    book.stock_quantity -= orderbook.quantity
+                    book.save()
             serializer = OrderSerializer(new_order, many=False)
             return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -56,15 +58,17 @@ def new_order(request):
         ## orderbooks items meaning CART items
         # Start adding items of orderbooks in the new_order we created above ## i.e.,start add to cart that inside this order ##
         for item in orderbooks:
-                        book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
-                        book_title = book.title 
-                        orderbook = OrderBook.objects.create(
-                                                            book= book,
-                                                            order = old_order, # the order we created above 
-                                                            quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
-                                                            price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
-                                                            book_title = book_title
-                        )
+                book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
+                book_title = book.title 
+                orderbook = OrderBook.objects.create(
+                                                    book= book,
+                                                    order = old_order, # the order we created above 
+                                                    quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
+                                                    price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
+                                                    book_title = book_title
+                )
+                book.stock_quantity -= orderbook.quantity
+                book.save()
         serializer = OrderSerializer(old_order, many=False)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)  
           
@@ -88,6 +92,9 @@ class OrderViewSet(viewsets.ModelViewSet):
  
 
 
+
+# PUT
+# PATCH
 @api_view(['PUT','PATCH'])
 @permission_classes([IsAuthenticated,IsAdminUser])
 def update_status(request,id):
