@@ -78,9 +78,7 @@ def new_order(request):
 
 
 # 'get': 'list'
-# 'get': 'retrieve',
-# 'put': 'update',                                         
-# 'patch': 'partial_update',                                       
+# 'get': 'retrieve',                                     
 # 'delete': 'destroy'                                    
 class OrderViewSet(viewsets.ModelViewSet):
     queryset= Order.objects.all()
@@ -88,6 +86,19 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'id'
  
+
+
+@api_view(['PUT','PATCH'])
+@permission_classes([IsAuthenticated,IsAdminUser])
+def update_status(request,id):
+    order = get_object_or_404(Order, id=id)
+    order.status = request.data['status']
+    order.save()
+    serializer = OrderSerializer(order,many=False)
+    return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
 
 
 

@@ -20,10 +20,10 @@ order_detail = views.OrderViewSet.as_view({
 
 urlpatterns =  router.urls  + [
     # Order Endpoints:
-    path('orders/orders/new_order/', views.new_order, name="new_order"),
+    path('orders/orders/new_order/', views.new_order, name="new-order"),
     path('orders/orders/',views.OrderViewSet.as_view({'get': 'list'}), name='ecommerce:orders-list'),
     path('orders/orders/<str:id>/', order_detail, name='ecommerce:orders-detail'),   #name=basename-detail
-    
+    path('orders/orders/<str:id>/', views.update_status,name='ecommerce:update-status'), 
     
 
 
