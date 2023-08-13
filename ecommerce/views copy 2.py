@@ -12,22 +12,15 @@ from .serializers import OrderSerializer,OrderBookSerializer
 # POST
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def create_order(request):
+def new_order(request):
     user = request.user
     data = request.data 
     orderbooks = request.data['orderbooks']  #  contains item data info about item we orderd 
     if orderbooks and len(orderbooks) == 0:
         return response.Response({'error': 'No order recieved'},status=status.HTTP_400_BAD_REQUEST)
     else:  
-        for item in orderbooks :
-            book = Book.objects.get(id = item['book'])  # 'book'  contain the value of id of selected book
-            quantity =  item['quantity']
-            if int(quantity) > int(book.stock_quantity):
-                return  response.Response({'error':'Not enough stock available.'},status=status.HTTP_400_BAD_REQUEST)
-
-
         total_amount = sum(float(item['price']) * int(item['quantity']) for item in orderbooks)
-                
+        
         
         if not Order.objects.filter(user= request.user).exists():
             ## NEW ORDER ##  
@@ -48,10 +41,10 @@ def create_order(request):
                     book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
                     book_title = book.title 
                     orderbook = OrderBook.objects.create(
-                                                        book       = book,
-                                                        order      = new_order, # the order we created above 
-                                                        quantity   = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
-                                                        price      = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
+                                                        book= book,
+                                                        order = new_order, # the order we created above 
+                                                        quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
+                                                        price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
                                                         book_title = book_title
                     )
                     book.stock_quantity -= orderbook.quantity
@@ -60,7 +53,7 @@ def create_order(request):
             return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
         
-        ##  OLD ORDER completing ## 
+        ## comlete the OLD ORDER ## 
         old_order = get_object_or_404(Order,user= request.user) # old order for  the same user(request.user) we find 
         ## orderbooks items meaning CART items
         # Start adding items of orderbooks in the new_order we created above ## i.e.,start add to cart that inside this order ##
@@ -68,13 +61,13 @@ def create_order(request):
                 book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
                 book_title = book.title 
                 orderbook = OrderBook.objects.create(
-                                                    book       = book,
-                                                    order      = old_order, # the order we created above 
-                                                    quantity   = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
-                                                    price      = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
+                                                    book= book,
+                                                    order = old_order, # the order we created above 
+                                                    quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
+                                                    price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
                                                     book_title = book_title
                 )
-                book.stock_quantity -= int(orderbook.quantity)
+                book.stock_quantity -= orderbook.quantity
                 book.save()
         serializer = OrderSerializer(old_order, many=False)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)  
