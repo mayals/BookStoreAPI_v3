@@ -7,7 +7,9 @@ from django.utils import timezone
 # https://pypi.org/project/shortuuid/
 from shortuuid.django_fields import ShortUUIDField 
 
- 
+
+
+ # CART
 class OrderBook(models.Model):
     id         = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
     order      = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='orderbooks')

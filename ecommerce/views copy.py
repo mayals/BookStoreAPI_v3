@@ -15,65 +15,35 @@ from .serializers import OrderSerializer,OrderBookSerializer
 def new_order(request):
     user = request.user
     data = request.data 
-    orderbooks = request.data['orderbooks']  #  contains item data info about item we orderd 
+    orderbooks = request.data['orderbooks']
     if orderbooks and len(orderbooks) == 0:
         return response.Response({'error': 'No order recieved'},status=status.HTTP_400_BAD_REQUEST)
     else:   
         total_amount = sum(float(item['price']) * int(item['quantity']) for item in orderbooks)
-        
-        
-        if not Order.objects.filter(user= request.user).exists():
-            ## NEW ORDER ##  
-            new_order = Order.objects.create(
-                                            user         = request.user,
-                                            order_date   = timezone.now(),
-                                            city         = request.data['city'],
-                                            zip_code     = request.data['zip_code'],
-                                            street       = request.data['street'],
-                                            phone_no     = request.data['phone_no'],
-                                            country      = request.data['country'],
-                                            state        = request.data['state'],
-                                            total_amount = total_amount
-            )
-            ## orderbooks items  meaning CART items
-            # Start adding items of orderbooks in the new_order we created above ## i.e., start add to cart that inside this order ##
-            for item in orderbooks:
-                        book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
-                        book_title = book.title 
-                        orderbook = OrderBook.objects.create(
-                                                            book= book,
-                                                            order = new_order, # the order we created above 
-                                                            quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
-                                                            price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
-                                                            book_title = book_title
-                        )
-            serializer = OrderSerializer(new_order, many=False)
-            return response.Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        
-        ## comlete the OLD ORDER ## 
-        old_order = get_object_or_404(Order,user= request.user) # old order for  the same user(request.user) we find 
-        ## orderbooks items meaning CART items
-        # Start adding items of orderbooks in the new_order we created above ## i.e.,start add to cart that inside this order ##
+        order = Order.objects.create(
+                                        user         = request.user,
+                                        order_date   = timezone.now(),
+                                        city         = request.data['city'],
+                                        zip_code     = request.data['zip_code'],
+                                        street       = request.data['street'],
+                                        phone_no     = request.data['phone_no'],
+                                        country      = request.data['country'],
+                                        state        = request.data['state'],
+                                        total_amount = total_amount
+        )
         for item in orderbooks:
-                        book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
-                        book_title = book.title 
-                        orderbook = OrderBook.objects.create(
-                                                            book= book,
-                                                            order = old_order, # the order we created above 
-                                                            quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
-                                                            price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
-                                                            book_title = book_title
-                        )
-        serializer = OrderSerializer(old_order, many=False)
-        return response.Response(serializer.data, status=status.HTTP_201_CREATED)  
-          
-          
-          
-          
-           #return response.Response({"IntegrityError": "This user already has order"},status=status.HTTP_400_BAD_REQUEST)
-        
-
+                    print('item ='+str(item))
+                    book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
+                    book_title = book.title 
+                    orderbook = OrderBook.objects.create(
+                                                        book= book,
+                                                        order = order, # the order we created above 
+                                                        quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
+                                                        price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
+                                                        book_title = book_title
+                    )
+        serializer = OrderSerializer(order, many=False)
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 
