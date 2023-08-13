@@ -3,9 +3,9 @@ from .models import Order
 
 
 class OrderFilter(django_filters.FilterSet):
-    Order_date = django_filters.DateFromToRangeFilter(field_name='Order_date')
+    order_date = django_filters.DateFromToRangeFilter(field_name='order_date')
        
 
     class Meta:
         model = Order
-        fields = ['enrollment_date']
+        fields = ['__all__']

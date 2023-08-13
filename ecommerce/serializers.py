@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from.models import Book, OrderBook, Order, Cart, Payment
-from book.serializers import BookSerializer
+from.models import  OrderBook, Order, Cart, Payment
+
 
 
 
@@ -17,28 +17,54 @@ class OrderBookSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    orderbooks = serializers.SerializerMethodField(method_name="get_orderbooks",read_only=True)      # related_field--  must be read only true
+    orderbooks = serializers.SerializerMethodField(read_only=True)      # related_field--  must be read only true
     class Meta:
         model = Order
         fields = ['id', 'user', 'order_date', 'status',
                   'total_amount', 'city', 'zip_code', 'street', 'state',
-                  'country', 'phone_no', 'payment_status', 'payment_mode',  
-                  'orderbooks', # related_field -- come from OrderBook model         
+                  'country', 'phone_no', 'payment_status', 'payment_mode','orderbooks' 
+                   # related_field -- come from OrderBook model         
         ]
 
+        # fields = "__all__"
         extra_kwargs = {
                     'id'        : {'read_only': True },
                     'user'      : {'read_only': True }, # take user value from authentication         
                     'orderbooks': {'read_only': True } #, # related_field -- come from OrderBook model # MUST BE READ ONLY TRUE 
         } 
       
-    @property
-    def get_orderbooks(self): # obj --order
-        orderbooks = OrderBook.objects.all().filter(order=self)
+
+    
+    def get_orderbooks(self, obj):
+        # Check if obj is None (when creating a new object)
+        # if obj is None:
+        #     orderbooks = []
+        #     return orderbooks
+        # else:
+            orderbooks = obj.orderbooks.all()
+            serializer = OrderBookSerializer(orderbooks,many=True)
+            return serializer.data
         
-        return orderbooks
+    
+    # def get_orderbooks(self,obj):
+    #     orderbooks = obj.orderbooks.all()
+    #     serializer = OrderBookSerializer(orderbooks,many=True)
+    #     return serializer.data 
+    
+    # # @property
+    # def get_orderbooks(self): # obj --order
+    #     orderbooks = OrderBook.objects.all().filter(order=self)
+    #     serializer = OrderBookSerializer(orderbooks,many=True)
+    #     return serializer.data 
     
    
+    # def get_orderbooks(self,obj):
+    #     orderbooks = obj.orderbooks.all()
+    #     serializer = OrderBookSerializer(orderbooks,many=True)
+    #     return serializer.data 
+
+
+
 
 
 

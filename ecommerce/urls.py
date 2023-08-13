@@ -6,16 +6,28 @@ from ecommerce import views
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
-#router.register('orders', views.OrderViewSet, basename="orders")     # Order  
+router.register('orders', views.OrderViewSet, basename="orders")     # Order  
 
 
+# https://www.django-rest-framework.org/tutorial/6-viewsets-and-routers/#binding-viewsets-to-urls-explicitly
+order_detail = views.OrderViewSet.as_view({
+                                            'get': 'retrieve',
+                                            'put': 'update',
+                                            'patch': 'partial_update',
+                                            'delete': 'destroy'
+})
 
 
-# The API URLs are now determined automatically by the router.
 urlpatterns =  router.urls  + [
     # Order Endpoints:
-    #path('orders/orders/<str:order_id>/', views.OrderViewSet.as_view({'get':'retrieve'}, name='ecommerce:orders-detail')),   #name=basename-detail
-    path('orders/orders/create_order/', views.OrderCreateAPIView.as_view(), name="create_order"),
+    path('orders/orders/new_order/', views.new_order, name="new_order"),
+    path('orders/orders/',views.OrderViewSet.as_view({'get': 'list'}), name='ecommerce:orders-list'),
+    path('orders/orders/<str:id>/', order_detail, name='ecommerce:orders-detail'),   #name=basename-detail
+    
+    
+
+
+
     #('orders/<str:book_id>/create_order/', views.OrderCreateAPIView.as_view(), name="create_order"),
     # path('ordrs/orders/<int:id>/cancel/', views.ReviewRetrieveUpdateDestroyAPIView.as_view(),name='retrieve-update-destroy-review'),
     # Cart and Checkout Endpoints:

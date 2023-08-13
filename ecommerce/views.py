@@ -1,61 +1,38 @@
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, permissions, generics, response, validators, status
+from rest_framework import viewsets, permissions, generics, response, status
+from rest_framework.decorators import api_view,permission_classes
+from rest_framework.permissions import IsAuthenticated ,IsAdminUser
 from .models import Order, OrderBook
 from book.models import Book
 from .serializers import OrderSerializer,OrderBookSerializer
-from django.utils import timezone
 
-# class OrderViewSet(viewsets.ModelViewSet):
-#     queryset= Order.objects.all()
-#     serializer_class = OrderSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-    
- 
 
-class OrderCreateAPIView(generics.CreateAPIView):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ["post"]
-
-    def perform_create(self, serializer):   
-        order = Order.objects.filter(user=self.request.user)
-        if not order.exists():
-            ## NEW ORDER ##    
-                                  #  Order fields = ['id', 'user', 'order_date', 'status',
-                                  #'total_amount', 'city', 'zip_code', 'street', 'state',
-                                  #'country', 'phone_no', 'payment_status', 'payment_mode',  
-                                  #'orderbooks', # related_field -- come from OrderBook model  
-            data = self.request.data
-            print("data=" + str(data))                     
-            orderbooks = self.request.data['orderbooks']  #this data come  from related field orderbooks fom anothe model OrderBook
-            
-            if orderbooks and len(orderbooks) == 0:
-                return response.Response({'error': 'No order recieved'},status=status.HTTP_400_BAD_REQUEST)
-            else:
-               
-                total_amount = sum(float(item['price']) * int(item['quantity']) for item in orderbooks)
-                # total_amount = sum( item['price']* item['quantity'] for item in orderbooks)
-                    # total_amount = sum( int(item['price']) * int(item['quantity']) ) #'price' #'quantity' fields come from the related field orderbooks
-  
-                # CREATE NEW ORDER #                   
-                order = Order.objects.create(
-                                        user         = self.request.user,
+########################################## Order ######################################################
+# POST
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def new_order(request):
+    user = request.user
+    data = request.data 
+    orderbooks = request.data['orderbooks']
+    if orderbooks and len(orderbooks) == 0:
+        return response.Response({'error': 'No order recieved'},status=status.HTTP_400_BAD_REQUEST)
+    else:   
+        total_amount = sum(float(item['price']) * int(item['quantity']) for item in orderbooks)
+        order = Order.objects.create(
+                                        user         = request.user,
                                         order_date   = timezone.now(),
-                                        city         = self.request.data['city'],
-                                        zip_code     = self.request.data['zip_code'],
-                                        street       = self.request.data['street'],
-                                        phone_no     = self.request.data['phone_no'],
-                                        country      = self.request.data['country'],
-                                        state        = self.request.data['state'],
+                                        city         = request.data['city'],
+                                        zip_code     = request.data['zip_code'],
+                                        street       = request.data['street'],
+                                        phone_no     = request.data['phone_no'],
+                                        country      = request.data['country'],
+                                        state        = request.data['state'],
                                         total_amount = total_amount
-                )
-
-
-
-                # CREATE NEW orderbook THAT CONTAIN order FIELD #
-                orderbooks = self.request.data['orderbooks']
-                for item in orderbooks:
+        )
+        for item in orderbooks:
+                    print('item ='+str(item))
                     book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
                     book_title = book.title 
                     orderbook = OrderBook.objects.create(
@@ -63,13 +40,83 @@ class OrderCreateAPIView(generics.CreateAPIView):
                                                         order = order, # the order we created above 
                                                         quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
                                                         price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
-                                                        book_title = book_title,
+                                                        book_title = book_title
                     )
-                
-                serializer = OrderSerializer(order, many=False)
-                return response.Response(serializer.data, status=status.HTTP_201_CREATED)
-                
-        return response.Response({"IntegrityError": "This user already has order"},status=status.HTTP_400_BAD_REQUEST)
+        serializer = OrderSerializer(order, many=False)
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+# 'get': 'list'
+# 'get': 'retrieve',
+# 'put': 'update',                                         
+# 'patch': 'partial_update',                                       
+# 'delete': 'destroy'                                    
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset= Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+ 
+
+
+
+
+# class OrderCreateAPIView(generics.CreateAPIView):
+#     queryset = Order.objects.all()
+#     serializer_class = OrderSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#     # http_method_names = ["post"]
+
+    # def perform_create(self, serializer):   
+            ## NEW ORDER ##    
+                                  #  Order fields = ['id', 'user', 'order_date', 'status',
+                                  #'total_amount', 'city', 'zip_code', 'street', 'state',
+                                  #'country', 'phone_no', 'payment_status', 'payment_mode',  
+                                  #'orderbooks', # related_field -- come from OrderBook model  
+            # data = self.request.data
+            # print("data=" + str(data))                     
+            # orderbooks = self.request.data['orderbooks']  #this data come  from related field orderbooks fom anothe model OrderBook
+            # print("orderbooks1=" + str(orderbooks)) 
+            # if orderbooks and len(orderbooks) == 0:
+            #     return response.Response({'error': 'No order recieved'},status=status.HTTP_400_BAD_REQUEST)
+            # else:
+               
+            #     total_amount = sum(float(item['price']) * int(item['quantity']) for item in orderbooks)
+  
+            #     # CREATE NEW ORDER #                   
+            #     order = Order.objects.create(
+            #                             user         = self.request.user,
+            #                             order_date   = timezone.now(),
+            #                             city         = self.request.data['city'],
+            #                             zip_code     = self.request.data['zip_code'],
+            #                             street       = self.request.data['street'],
+            #                             phone_no     = self.request.data['phone_no'],
+            #                             country      = self.request.data['country'],
+            #                             state        = self.request.data['state'],
+            #                             total_amount = total_amount
+            #     )
+                # CREATE NEW orderbook inside the a bove order, i.e, orderbooks CONTAIN order FIELD #
+                # orderbooks = self.request.data['orderbooks']
+                # print("orderbooks2=" + str(orderbooks)) 
+                # for item in orderbooks:
+                #     print('item ='+str(item))
+                #     book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
+                #     book_title = book.title 
+                #     orderbook = OrderBook.objects.create(
+                #                                         book= book,
+                #                                         order = order, # the order we created above 
+                #                                         quantity = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
+                #                                         price = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
+                #                                         book_title = book_title,
+                #     )
+                #     order.save()
+                #     orderbooks= order.orderbooks.all()
+                #     serializer = OrderSerializer(order, many=False)
+                #     return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+                # print("orderbooks3=" + str(orderbooks))
+             
+        #return response.Response({"IntegrityError": "This user already has order"},status=status.HTTP_400_BAD_REQUEST)
             
         
 

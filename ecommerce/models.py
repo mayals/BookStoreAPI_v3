@@ -10,8 +10,8 @@ from shortuuid.django_fields import ShortUUIDField
  
 class OrderBook(models.Model):
     id         = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    order      = models.ForeignKey('Order', on_delete=models.CASCADE, null=True , blank=False, related_name='orderbooks')
-    book       = models.ForeignKey('book.Book', on_delete=models.CASCADE,  null=True , blank=False, related_name='orderbooks')
+    order      = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='orderbooks')
+    book       = models.ForeignKey('book.Book', on_delete=models.CASCADE,  null=True )
     quantity   = models.PositiveIntegerField(default=1, null=True, blank=False)
     price      = models.DecimalField(default=00.00, max_digits=10, decimal_places=2 ,blank=False)
     book_title = models.CharField(max_length=200, default="", blank=True)  
@@ -52,7 +52,8 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=30, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID)
     payment_mode   = models.CharField(max_length=30, choices=PaymentMode.choices, default=PaymentMode.COD)
     status         = models.CharField(max_length=60, choices=OrderStatus.choices, default=OrderStatus.PROCESSING)
-   
+    orderbooks     = models.ManyToManyField(Book, through='OrderBook')
+    
     def __str__(self):
         return f"Order No. #{self.id}"
     
@@ -64,7 +65,11 @@ class Order(models.Model):
         verbose_name = 'Order'
         verbose_name_plural = 'Orders'
     
-
+    @property
+    def orderbooks(self):
+        orderbooks = OrderBook.objects.all().filter(order = self)
+        print("orderbooks3 =" + str(orderbooks)) 
+        return orderbooks
     
 
 
