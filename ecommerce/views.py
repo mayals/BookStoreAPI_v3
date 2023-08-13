@@ -22,8 +22,13 @@ def create_order(request):
         for item in orderbooks :
             book = Book.objects.get(id = item['book'])  # 'book'  contain the value of id of selected book
             quantity =  item['quantity']
-            if int(quantity) > int(book.stock_quantity):
-                return  response.Response({'error':'Not enough stock available.'},status=status.HTTP_400_BAD_REQUEST)
+            if int(book.stock_quantity) > 0 :
+                if int(quantity) > int(book.stock_quantity):
+                    return  response.Response({'error':'Not enough stock available.'},status=status.HTTP_400_BAD_REQUEST)
+            else:
+                book.stock_quantity = 0
+                book.save()
+                return  response.Response({'error':f"This book '{book.title}' out of stock."},status=status.HTTP_400_BAD_REQUEST) 
 
 
         total_amount = sum(float(item['price']) * int(item['quantity']) for item in orderbooks)
@@ -46,7 +51,7 @@ def create_order(request):
             # Start adding items of orderbooks in the new_order we created above ## i.e., start add to cart that inside this order ##
             for item in orderbooks:
                     book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
-                    book_title = book.title 
+                    book_title = book.title
                     orderbook = OrderBook.objects.create(
                                                         book       = book,
                                                         order      = new_order, # the order we created above 
@@ -67,26 +72,27 @@ def create_order(request):
         for item in orderbooks:
                 book = Book.objects.get(id = item['book']) # 'book'=  value of book id come from related field orderbooks that come from OrderBook model
                 book_title = book.title 
-                orderbook = OrderBook.objects.create(
-                                                    book       = book,
-                                                    order      = old_order, # the order we created above 
-                                                    quantity   = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
-                                                    price      = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
-                                                    book_title = book_title
-                )
-                book.stock_quantity -= int(orderbook.quantity)
-                book.save()
+                if OrderBook.objects.all().filter(order=old_order,book=book).exists():
+                    orderbook = OrderBook.objects.all().get(order=old_order,book=book)
+                    orderbook.quantity  += int(item['quantity']) 
+                    orderbook.save()
+                    book.stock_quantity -= int(orderbook.quantity)
+                    book.save()
+                else:
+                    orderbook = OrderBook.objects.create(
+                                                        book       = book,
+                                                        order      = old_order, # the order we created above 
+                                                        quantity   = item['quantity'],# 'quantity'=  value of quantity come from related field orderbooks that come from OrderBook model
+                                                        price      = item['price'],# 'price'=  value of 'price' come from related field orderbooks that come from OrderBook model
+                                                        book_title = book_title
+                    )
+                    book.stock_quantity -= int(orderbook.quantity)
+                    book.save()
         serializer = OrderSerializer(old_order, many=False)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)  
           
           
           
-          
-           #return response.Response({"IntegrityError": "This user already has order"},status=status.HTTP_400_BAD_REQUEST)
-        
-
-
-
 
 # 'get': 'list'
 # 'get': 'retrieve',                                     
