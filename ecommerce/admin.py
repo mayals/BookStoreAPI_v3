@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import OrderBook, Order, Cart
+from .models import OrderBook, Order
 
 
 @admin.register(OrderBook)
@@ -16,7 +16,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ['user', 'order_date', 'total_amount', 'status']
 
 
-@admin.register(Cart)
-class CartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user']
-    list_filter = ['user', 'books']
+# @admin.register(Cart)
+# class CartAdmin(admin.ModelAdmin):
+#     list_display = ['id', 'user']
+#     list_filter = ['user', 'books']

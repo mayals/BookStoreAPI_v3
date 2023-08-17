@@ -1,6 +1,6 @@
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, permissions, generics, response, status
+from rest_framework import viewsets, permissions, generics, response, status,serializers
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated ,IsAdminUser
 from .models import Order, OrderBook
@@ -92,7 +92,7 @@ def create_order(request):
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)  
           
           
-          
+
 
 # 'get': 'list'
 # 'get': 'retrieve',                                     
@@ -118,7 +118,40 @@ def update_status(request,id):
     return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+# https://www.django-rest-framework.org/api-guide/views/#api_view
+#  OrderBook_view
+@api_view(http_method_names=['GET'])
+@permission_classes([IsAuthenticated])
+def orderbooks_view(request):
+    user = request.user
+    order = get_object_or_404(Order ,user= request.user)
+    if order :
+        order_books =  OrderBook.objects.all().filter(order=order)
+         # fields = ['id','order', 'book', 'quantity', 'price' ,'book_title']  
+        # order_books = []
+        # order = order
+        # for item in order_books:
+        #     book = item.book
+        #     book_title = item.book_title
+        #     book_quantity = item.quantity
+        #     book_price = item.price
+        #     item_cost = int(item.quantity) * float(item.price)
+                   
+            
+        #     order_books.add({
+        #                         'order'     : order,
+        #                         'book'      :
+        #                         'book_title': book_title,
+        #                         'book_quantity': book_quantity,
+        #                         'book_price': book_price,
+        #                         'item_cost': item_cost
+        #     })
 
+        serializer = OrderBookSerializer(order_books, many=True)
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED) 
+        #return response.Response({ 'order_books': order_books  },status=status.HTTP_201_CREATED)
+    return response.Response(status=status.HTTP_404_NOT_FOUND)  
+  
 
 
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from.models import  OrderBook, Order, Cart, Payment
+from.models import  OrderBook, Order, Payment
 
 
 
@@ -36,11 +36,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
     
     def get_orderbooks(self, obj):
-        # Check if obj is None (when creating a new object)
-        # if obj is None:
-        #     orderbooks = []
-        #     return orderbooks
-        # else:
             orderbooks = obj.orderbooks.all()
             serializer = OrderBookSerializer(orderbooks,many=True)
             return serializer.data
@@ -69,10 +64,10 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
     
-class CartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cart
-        fields = ['id', 'user', 'books']
+# class CartSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Cart
+#         fields = ['id', 'user', 'books']
 
 
 class PaymentSerializer(serializers.ModelSerializer):

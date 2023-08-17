@@ -20,14 +20,13 @@ order_detail = views.OrderViewSet.as_view({
 
 urlpatterns =  router.urls  + [
     # Order Endpoints:
-    path('orders/orders/create_order/', views.create_order, name="create-order"),
+    path('orders/orders/new_order/', views.create_order, name="create-order"),
     path('orders/orders/',views.OrderViewSet.as_view({'get': 'list'}), name='orders-list'),
     path('orders/orders/<str:id>/', order_detail, name='orders-detail'),   #name=basename-detail
-    path('orders/orders/<str:id>/', views.update_status,name='update-status'), 
+    path('orders/orders/<str:id>/', views.update_status, name='update-status'), 
     
-
-
-
+    # OrderBook Endpoints
+    path('orderbooks_view/', views.orderbooks_view, name='orderbooks_view'), 
     #('orders/<str:book_id>/create_order/', views.OrderCreateAPIView.as_view(), name="create_order"),
     # path('ordrs/orders/<int:id>/cancel/', views.ReviewRetrieveUpdateDestroyAPIView.as_view(),name='retrieve-update-destroy-review'),
     # Cart and Checkout Endpoints:

@@ -43,8 +43,9 @@ class PaymentMode(models.TextChoices):
 class Order(models.Model):
     id             = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
     user           = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True , blank=False, related_name='orders')
+    orderbooks     = models.ManyToManyField(Book, through='OrderBook')
+    total_amount   = models.IntegerField(default=0) # total price
     order_date     = models.DateTimeField(auto_now_add=True, auto_now=False)   
-    total_amount   = models.IntegerField(default=0)
     city           = models.CharField(max_length=400, default="", blank=False)
     zip_code       = models.CharField(max_length=100, default="", blank=False)
     street         = models.CharField(max_length=500, default="", blank=False)
@@ -54,7 +55,7 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=30, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID)
     payment_mode   = models.CharField(max_length=30, choices=PaymentMode.choices, default=PaymentMode.COD)
     status         = models.CharField(max_length=60, choices=OrderStatus.choices, default=OrderStatus.PROCESSING)
-    orderbooks     = models.ManyToManyField(Book, through='OrderBook')
+    
     
     def __str__(self):
         return f"Order No. #{self.id}"
@@ -96,14 +97,14 @@ class Order(models.Model):
 
 
 
-   
-class Cart(models.Model): 
-    id       = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
-    user     = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=False, related_name='cart') 
-    books    = models.ManyToManyField(Book)    
+# This Cart model is not need, because the model OrderBook is does instead 
+# class Cart(models.Model): 
+#     id       = ShortUUIDField(primary_key=True, unique=True, length=6, max_length=6, editable=False)
+#     user     = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=False, related_name='cart') 
+#     books    = models.ManyToManyField(Book)    
  
-    def __str__(self):
-        return str(self.user.email)
+#     def __str__(self):
+#         return str(self.user.email)
 
 
 
