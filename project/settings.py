@@ -284,10 +284,11 @@ SWAGGER_SETTINGS = {
 }
 
 
-
+# https://dashboard.stripe.com/test/developers
 ######################################### STRIPE_SECRET SETTINGS ##############################################
 STRIPE_SECRET = os.getenv('STRIPE_SECRET')
-
+# Publishable key = pk_test_51NRKjDGdnvcxF6p4l2MGWNCo1bzJy3ptn8k71plHXu4KnEcE5N3tIqEXUd02iIGaYvXd6UXz0qtBi5No2UxsfkxM00LxmdpuD7
+# Secret key = sk_test_51NRKjDGdnvcxF6p4umZSGtNuUPukxqkz1oesHmYDLVAsAOV2z6ivV1JguSr5XXGuM9suEH4V7ehh5KN5P2c4dLjZ00m16lShkL
 
 
 

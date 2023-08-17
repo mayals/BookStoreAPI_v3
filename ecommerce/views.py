@@ -1,11 +1,13 @@
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from rest_framework import viewsets, permissions, generics, response, status,serializers
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated ,IsAdminUser
 from .models import Order, OrderBook
 from book.models import Book
-from .serializers import OrderSerializer,OrderBookSerializer
+from .serializers import OrderSerializer,OrderBookSerializer,StripeSerializer
+import stripe
 
 
 ########################################## Order ######################################################
@@ -110,7 +112,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 # PATCH
 @api_view(['PUT','PATCH'])
 @permission_classes([IsAuthenticated,IsAdminUser])
-def update_status(request,id):
+def update_order_status(request,id):
     order = get_object_or_404(Order, id=id)
     order.status = request.data['status']
     order.save()
@@ -118,6 +120,10 @@ def update_status(request,id):
     return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+
+
+
+################################### OrderBook ###########################################
 # https://www.django-rest-framework.org/api-guide/views/#api_view
 #  OrderBook_view
 @api_view(http_method_names=['GET'])
@@ -127,7 +133,7 @@ def orderbooks_view(request):
     order = get_object_or_404(Order ,user= request.user)
     if order :
         order_books =  OrderBook.objects.all().filter(order=order)
-         # fields = ['id','order', 'book', 'quantity', 'price' ,'book_title']  
+        # fields = ['id','order', 'book', 'quantity', 'price' ,'book_title']  
         # order_books = []
         # order = order
         # for item in order_books:
@@ -152,6 +158,79 @@ def orderbooks_view(request):
         #return response.Response({ 'order_books': order_books  },status=status.HTTP_201_CREATED)
     return response.Response(status=status.HTTP_404_NOT_FOUND)  
   
+
+
+
+
+
+
+########################################## Payment ####################################################################################
+
+
+class PaymentView():
+    pass
+
+
+
+
+class StripeView(generics.CreateAPIView):
+    serializer_class = StripeSerializer
+
+    def post(self, request, format=None):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            order = Order.objects.get(id=serializer.validated_data['order'])
+            total_amount  = order.total_amount 
+            user = request.user
+            stripe.api_key = settings.STRIPE_SECRET
+            intent = stripe.PaymentIntent.create(
+                                            # Stripe uses cents instead of dollars
+                                            amount=int(total_amount * 100),
+                                            currency="usd",
+                                            description="Payment for " + order.id,
+                                            receipt_email=user.email,
+                                            automatic_payment_methods={"enabled": True},
+            )
+            response_data = {
+                'client_secret': intent.client_secret
+            }
+            return response.Response(data=response_data, status=status.HTTP_201_CREATED)
+        
+        else:
+            return response.Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+# class CreatePaymentIntent(APIView):
+#     def post(self, request, *args, **kwargs):
+#         amount = request.data.get('amount')  # Amount in cents
+#         currency = 'usd'
+
+#         stripe.api_key = settings.STRIPE_SECRET_KEY
+#         intent = stripe.PaymentIntent.create(
+#                                             amount=amount,
+#                                             currency=currency
+#         )
+#         return response.Response({'client_secret': intent.client_secret})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

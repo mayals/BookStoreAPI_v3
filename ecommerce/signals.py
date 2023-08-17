@@ -6,4 +6,4 @@ from .models import Order, Payment
 def create_payment(sender, instance, created, **kwargs):
     order = instance
     if created:
-        Payment.objects.create(order=order, amount=order.get_total_price)
+        Payment.objects.create(order=order, amount=order.total_amount)

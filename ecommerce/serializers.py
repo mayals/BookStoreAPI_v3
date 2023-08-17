@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from.models import  OrderBook, Order, Payment
-
+from book.models import Book
 
 
 
@@ -74,3 +74,20 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ['id', 'order', 'amount', 'is_paid', 'checkout_id', 'payment_date']
+
+
+
+
+
+class StripeSerializer(serializers.Serializer):
+    order = serializers.CharField()
+
+    def validate_order(self, value):
+        try:
+            order = Order.objects.get(id=value)
+        except Order.DoesNotExist:
+            raise serializers.ValidationError("Order does not exist")
+        return order.id
+
+    def create(self, validated_data):
+        return validated_data
