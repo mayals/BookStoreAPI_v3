@@ -96,7 +96,7 @@ class UserProfile(models.Model):
             if old.profile_picture != self.profile_picture:
                 old.profile_picture.delete(save=False)
         
-        # Set the student ID to be the same as the user ID
+        # Set the userprofile ID to be the same as the user ID
         self.id = self.user.id
         super().save(*args, **kwargs)
     
